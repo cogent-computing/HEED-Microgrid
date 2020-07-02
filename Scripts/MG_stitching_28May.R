@@ -1,7 +1,7 @@
 #**********************************************************************#
-# Script for analysis of MG data for paper 5 and 6                     #
+# Script for stitching MG data for paper 5 and 6                       #
 # Authors: K Bhargava                                                  #
-# Last updated on: 28th May, 2020                                      #
+# Last updated on: 30th June, 2020                                     #
 #**********************************************************************#
 
 #**********************************************************************#
@@ -15,14 +15,14 @@ library(here)
 # Define MACROS
 NUM_CPE = 20
 NUM_SOCKETS = 10
-MONTHS <- c("Jul","Aug","Sep","Oct","Nov","Dec")
+MONTHS <- c("Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar")
 AREA = 16.37
 EFFICIENCY = 0.155
 #**********************************************************************#
 
 #**********************************************************************#
 # Set path for output files
-output_directory <- "../"
+output_directory <- "Data"
 #**********************************************************************#
 
 #**********************************************************************#
@@ -30,61 +30,63 @@ output_directory <- "../"
 cpe <- data.frame()
 for(k in 1:NUM_CPE) {
   if(k==1) {
-    filepath <- "../Data/Nur 1A CPE1"
+    filepath <- "Data/Nur 1A CPE1"
   } else if(k==2) {
-    filepath <- "../Data/Nur 1A CPE2"
+    filepath <- "Data/Nur 1A CPE2"
   } else if(k==3) {
-    filepath <- "../Data/Nur 1B CPE3"
+    filepath <- "Data/Nur 1B CPE3"
   } else if(k==4) {
-    filepath <- "../Data/Nur 1B CPE4"
+    filepath <- "Data/Nur 1B CPE4"
   } else if(k==5) {
-    filepath <- "../Data/Nur 1C CPE5"
+    filepath <- "Data/Nur 1C CPE5"
   } else if(k==6) {
-    filepath <- "../Data/Nur 1C CPE6"
+    filepath <- "Data/Nur 1C CPE6"
   } else if(k==7) {
-    filepath <- "../Data/Nur 2A CPE7"
+    filepath <- "Data/Nur 2A CPE7"
   } else if(k==8) {
-    filepath <- "../Data/Nur 2A CPE8"
+    filepath <- "Data/Nur 2A CPE8"
   } else if(k==9) {
-    filepath <- "../Data/Nur 2B CPE9"
+    filepath <- "Data/Nur 2B CPE9"
   } else if(k==10) {
-    filepath <- "../Data/Nur 2B CPE10"
+    filepath <- "Data/Nur 2B CPE10"
   } else if(k==11) {
-    filepath <- "../Data/Nur 2C CPE11"
+    filepath <- "Data/Nur 2C CPE11"
   } else if(k==12) {
-    filepath <- "../Data/Nur 2C CPE12"
+    filepath <- "Data/Nur 2C CPE12"
   } else if(k==13) {
-    filepath <- "../Data/Playground CPE1"
+    filepath <- "Data/Playground CPE1"
   } else if(k==14) {
-    filepath <- "../Data/Playground CPE2"
+    filepath <- "Data/Playground CPE2"
   } else if(k==15) {
-    filepath <- "../Data/Playground CPE3"
+    filepath <- "Data/Playground CPE3"
   } else if(k==16) {
-    filepath <- "../Data/Playground CPE4"
+    filepath <- "Data/Playground CPE4"
   } else if(k==17) {
-    filepath <- "../Data/Playground CPE5"
+    filepath <- "Data/Playground CPE5"
   } else if(k==18) {
-    filepath <- "../Data/Streetlight 1 CPE"
+    filepath <- "Data/Streetlight 1 CPE"
   } else if(k==19) {
-    filepath <- "../Data/Streetlight 2 CPE"
+    filepath <- "Data/Streetlight 2 CPE"
   } else if(k==20) {
-    filepath <- "../Data/Streetlight 3 CPE"
+    filepath <- "Data/Streetlight 3 CPE"
   }
   file_list <- list.files(here(filepath))
   file_list <- file_list[file.size(here(filepath,file_list))>0]
   
   # Read all files - add ID and bind all data
   df <- map_dfr(file_list, ~ read_csv(here(filepath,.x), col_names = FALSE) %>%
-                  mutate(id = substr(filepath,9,nchar(filepath)), 
+                  mutate(id = substr(filepath,6,nchar(filepath)), 
                          X1 = as.double(X1), X2=as.character(X2), X3=as.character(X3)))
   cpe <- rbind(cpe,df)
   
 }
 colnames(cpe) <- c("timestamp", "variable", "value","id")
 cpe <- cpe[cpe$variable=="LED1_P" | cpe$variable=="LED2_P" | cpe$variable=="LED3_P",]
+cpe <- cpe[complete.cases(cpe),]
+# Convert power to W by dividing by 1000 and timestamp to GMT zone and add two hours
 cpe <- cpe %>% mutate(value = as.numeric(value)/1000.0, 
-                      timestamp = as.POSIXct(timestamp, tz="GMT", origin="1970-01-01") %m+% hours(2))
-write.csv(cpe, file=here(output_directory,"CPE_all.csv"), row.names=FALSE)
+          timestamp = as.POSIXct(timestamp, tz="GMT", origin="1970-01-01") %m+% hours(2))
+write.csv(cpe, file=here(output_directory,"CPE_all_jun19_to_mar20.csv"), row.names=FALSE)
 #**********************************************************************#
 
 #**********************************************************************#
@@ -92,90 +94,80 @@ write.csv(cpe, file=here(output_directory,"CPE_all.csv"), row.names=FALSE)
 sockets <- data.frame()
 for(k in 1:NUM_SOCKETS) {
   if(k==1) {
-    filepath <- "../Data/Nur 1A S1"
+    filepath <- "Data/Nur 1A S1"
   } else if(k==2) {
-    filepath <- "../Data/Nur 1A S2"
+    filepath <- "Data/Nur 1A S2"
   } else if(k==3) {
-    filepath <- "../Data/Nur 1B S1"
+    filepath <- "Data/Nur 1B S1"
   } else if(k==4) {
-    filepath <- "../Data/Nur 1C S1"
+    filepath <- "Data/Nur 1C S1"
   } else if(k==5) {
-    filepath <- "../Data/Nur 2A S1"
+    filepath <- "Data/Nur 2A S1"
   } else if(k==6) {
-    filepath <- "../Data/Nur 2A S2"
+    filepath <- "Data/Nur 2A S2"
   } else if(k==7) {
-    filepath <- "../Data/Nur 2B S1"
+    filepath <- "Data/Nur 2B S1"
   } else if(k==8) {
-    filepath <- "../Data/Nur 2C S1"
+    filepath <- "Data/Nur 2C S1"
   } else if(k==9) {
-    filepath <- "../Data/Playground S1"
+    filepath <- "Data/Playground S1"
   } else if(k==10) {
-    filepath <- "../Data/Playground S2"
+    filepath <- "Data/Playground S2"
   } 
   file_list <- list.files(here(filepath))
   file_list <- file_list[file.size(here(filepath,file_list))>0]
 
   # Read all files - add ID and bind all data
   df <- map_dfr(file_list, ~ read_csv(here(filepath,.x), col_names = FALSE) %>%
-                        mutate(id = substr(filepath,9,nchar(filepath)), 
+                        mutate(id = substr(filepath,6,nchar(filepath)), 
                                X1 = as.double(X1), X2=as.character(X2), X3=as.character(X3)))
   sockets <- rbind(sockets,df)
 }
 colnames(sockets) <- c("timestamp","variable","value","id")
 sockets <- sockets[sockets$variable=="vRELAY1_LVL" | sockets$variable=="AC_Day_Energy_session", ]
-sockets <- sockets[!is.na(sockets$id),]
+sockets <- sockets[complete.cases(sockets),]
+# Convert timestamp to GMT zone and add two hours
 sockets <- sockets %>% mutate(value = as.numeric(value), 
-                              timestamp = as.POSIXct(timestamp, tz="GMT", origin="1970-01-01") %m+% hours(2))
-write.csv(sockets, file=here(output_directory,"Sockets_all.csv"), row.names=FALSE)
+           timestamp = as.POSIXct(timestamp, tz="GMT", origin="1970-01-01") %m+% hours(2))
+write.csv(sockets, file=here(output_directory,"sockets_all_jun19_to_mar20.csv"), row.names=FALSE)
 #**********************************************************************#
 
 #**********************************************************************#
 # Read system data- time is Rwanda time zone
+filepath <- "Data/System Data/Jun19_to_Mar20"
+file_list <- list.files(here(filepath))
+file_list <- file_list[file.size(here(filepath,file_list))>0]
 systemData <- data.frame()
-for(k in 1:3) {
-  if(k==1) {
-    filepath <- "../Data/System Data/Full data"
-  } else if(k==2) {
-    filepath <- "../Data/System Data/11 2019"
-  } else if(k==3) {
-    filepath <- "../Data/System Data/12 2019"
-  } 
-  file_list <- list.files(here(filepath))
-  file_list <- file_list[file.size(here(filepath,file_list))>0]
-  
-  headers <- read_csv(here(filepath,file_list[1]), col_names = FALSE, na="..", n_max = 3)
+for(k in seq_along(file_list)) {
+  headers <- read_csv(here(filepath,file_list[k]), col_names = FALSE, na="..", n_max = 3)
   headers[is.na(headers)] <- ""
   column_labels <- headers %>% summarize_all(str_c, collapse = " ")
   headers = unname(unlist(column_labels[1,]))
   headers <- sub("\\[.*\\] ", "", headers)
   
   # Input data file
-  system_data <- read_csv(here(filepath,file_list[1]), col_names = headers, na="..", skip = 3)
-  system_data <- as.data.frame(system_data)
-  system_data <- system_data[,seq_along(system_data)]
+  df <- read_csv(here(filepath,file_list[k]), col_names = headers, na="..", skip = 3)
+  df <- as.data.frame(df)
+  df <- df[,seq_along(df)]
   
-  # Subset data set
-  system_data <- system_data[,c(headers[1], 
-                                headers[which(grepl("System overview AC Consumption L1 W", headers, fixed=TRUE) | 
-                                              grepl("Solar Charger PV power ", headers, fixed=TRUE) | 
-                                              grepl("Battery Monitor State of charge %", headers, fixed=TRUE) |
-                                              grepl("Battery Monitor Discharged Energy kWh", headers, fixed=TRUE) |
-                                              grepl("Battery Monitor Charged Energy kWh", headers, fixed=TRUE) )])]
-  colnames(system_data)[1] <- c("timestamp")
-  systemData <- rbind(systemData, system_data)
+  # Subset data set - time is in Africa/Kigali time zone (GMT+2)
+  df <- df[,c(headers[1], 
+              headers[which(grepl("System overview AC Consumption L1 W", headers, fixed=TRUE) | 
+                            grepl("Solar Charger PV power ", headers, fixed=TRUE) | 
+                            grepl("Battery Monitor State of charge %", headers, fixed=TRUE) |
+                            grepl("Battery Monitor Discharged Energy kWh", headers, fixed=TRUE) |
+                            grepl("Battery Monitor Charged Energy kWh", headers, fixed=TRUE) )])]
+  colnames(df)[1] <- c("timestamp")
+  systemData <- rbind(systemData, df)
 }
-#Trim time from 02 July
-systemData$date <- date(systemData$timestamp)
-systemData <- systemData[systemData$date>="2019-07-02",]
 systemData <- distinct(systemData)
-write.csv(systemData, file=here(output_directory,"systemData_jul_dec.csv"), row.names=FALSE)
+write.csv(systemData, file=here(output_directory,"systemData_jun19_to_mar20.csv"), row.names=FALSE)
 #**********************************************************************#
 
 #**********************************************************************#
 # Set working directory to read weather data
-filepath <- "../Data/Weather data"
+filepath <- "Data/Weather data"
 file_list <- list.files(here(filepath))
-
 weather <- data.frame()
 for(i in seq_along(file_list)) {
   headers <- read_csv(here(filepath,file_list[i]), col_names = FALSE, na="..", n_max = 2)
@@ -192,37 +184,13 @@ for(i in seq_along(file_list)) {
   
   weather <- rbind(weather, weather_data)
 }
-weather <- weather[weather$timestamp>="2019-07-02 00:00:00 GMT" & weather$timestamp<="2020-03-31 00:00:00 GMT", ]
-write.csv(weather, file=here(output_directory,"weather_hourly_jul_dec.csv"), row.names=FALSE)
+weather <- weather %>% mutate(date=date(timestamp))
+weather <- weather[weather$date>="2019-07-02" & weather$date<="2020-03-31", ]
+weather <- weather[,-3]
+write.csv(weather, file=here(output_directory,"weather_jul19_to_mar20.csv"), row.names=FALSE)
 #**********************************************************************#
 #************************ EOF *****************************************#
 
-###############################################################################
-#Once the values are all read - analyse the data to get missing days and hours
-#Create a vector of all dates in each month
-july_2019 <- seq(as.Date("2019-07-02"), as.Date("2019-07-31"), by="days")
-aug_2019 <- seq(as.Date("2019-08-01"), as.Date("2019-08-31"), by="days")
-sep_2019 <- seq(as.Date("2019-09-01"), as.Date("2019-09-30"), by="days")
-oct_2019 <- seq(as.Date("2019-10-01"), as.Date("2019-10-31"), by="days")
-nov_2019 <- seq(as.Date("2019-11-01"), as.Date("2019-11-30"), by="days")
-dec_2019 <- seq(as.Date("2019-12-01"), as.Date("2019-12-31"), by="days")
-all_days <- c(july_2019, aug_2019, sep_2019, oct_2019, nov_2019, dec_2019)
-#Create a vector for all 24 hours in a day
-all_hours <- format( seq.POSIXt(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1), 
-                                by = "1 hour"), "%H", tz="GMT")
-all_hours <- all_hours[-25]
-
-############################################################################
-#Analyse the cpe data to extract hourly means for instantaenous power
-
-cpe_write$time <- as.POSIXct(paste(paste(cpe_write$date, 
-                                         cpe_write$timeUse), ":00:00",sep=""),
-                             format="%Y-%m-%d %H:%M:%S", tz="GMT")
-cpe_write <- cpe_write[,-c(1,2,3)] #Remove date, time and month
-cpe_write <- cpe_write[,c(61,1:60)] #Rearrange columns
-
-setwd("~/OneDrive - Coventry University/HEED_analysis/Micro-grid/")
-write.csv(cpe_write, file="CPE_all_hourly_mean.csv", row.names=F)
 
 ################################################################################
 #Analyse the sockets data to extract hourly means for instantaenous power and 
