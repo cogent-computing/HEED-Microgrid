@@ -140,10 +140,10 @@ plotTypical <- function(df) {
 }
 plotTypical(typical_load_nur) + 
   labs(title="Typical day load profile at the Nurseries between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"typical_load_nur_jul19_dec20.png"))
+ggsave(here(plot_dir,"typical_load_nur_jul19_mar20.png"))
 plotTypical(typical_load_pg) + 
   labs(title="Typical day load profile at the Playground between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"typical_load_pg_jul19_dec20.png"))
+ggsave(here(plot_dir,"typical_load_pg_jul19_mar20.png"))
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -171,10 +171,10 @@ plotError_scatter <- function(df) {
 }
 plotError_scatter(na_seadec_nur) + 
   labs(title="Over and under predictions of user load at Nurseries between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"diffPred_nur_jul19_dec20.png"))
+ggsave(here(plot_dir,"diffPred_nur_jul19_mar20.png"))
 plotError_scatter(na_seadec_pg) + 
   labs(title="Over and under predictions of user load at Playground between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"diffPred_pg_jul19_dec20.png"))
+ggsave(here(plot_dir,"diffPred_pg_jul19_mar20.png"))
 
 plotError_tile <- function(df) {
   ggplot(df, aes(date, timeUse)) + geom_tile(aes(fill = Diff_range)) + 
@@ -187,12 +187,12 @@ plotError_tile(na_seadec_nur) +
   scale_fill_gradientn(colours = pal, breaks=c(2,4,6,8,10), 
         labels = c(">-0.5 & <-0.4", ">-0.3 & <-0.2",">-0.1 & <0", ">0.1 & <0.2", ">0.3")) + 
   labs(title="Over and under predictions of user load at Nurseries between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"diffPred_tile__nur_jul19_dec20.png"))
+ggsave(here(plot_dir,"diffPred_tile__nur_jul19_mar20.png"))
 plotError_tile(na_seadec_pg) + 
   scale_fill_gradientn(colours = pal, breaks=c(1,2,3,4,5), 
                        labels = c("<0", ">0 & <0.1",">0.1 & <0.2", ">0.2 & <0.3", ">0.3")) + 
   labs(title="Over and under predictions of user load at Playground between Jul'19 and Mar'20")
-ggsave(here(plot_dir,"diffPred_tile_pg_jul19_dec20.png"))
+ggsave(here(plot_dir,"diffPred_tile_pg_jul19_mar20.png"))
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -204,7 +204,7 @@ ggplot(system_daily, aes(days, System.overview.AC.Consumption.L1.W_ma/1000.0, co
   labs(title="Daily AC consumption at the Microgrid between Jul'19 and Mar'20" , 
        y="AC consumption (kW)", x = "Days since commissioning", colour="") + THEME +
   scale_x_continuous(breaks = seq(1,274,28)) + scale_y_continuous(breaks=seq(0,6,1)) + theme(legend.position = "none")
-ggsave(here(plot_dir,"daily_acLoad_jul19_dec20.png"))
+ggsave(here(plot_dir,"daily_acLoad_jul19_mar20.png"))
 #******************************************************************************************#
 
 #******************************************************************************************#
