@@ -9,17 +9,20 @@
 library(tidyverse)
 library(lubridate)
 library(wesanderson)
+library(extrafont)
 library(here)
 #******************************************************************************************#
 
 #******************************************************************************************#
 # Define macros - theme for all plots
-THEME <- theme(plot.title = element_text(size=9), legend.position = "bottom",
-               legend.key.size = unit(0.5, "cm"), 
-               legend.margin = margin(t=0,r=0,b=0,l=0), panel.grid.major = element_blank(), 
+MONTHS <- c("Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar")
+THEME <- theme(legend.position = "bottom", legend.text=element_text(size=10, family="Times New Roman"),
+               legend.key.size = unit(0.5, "cm"),legend.margin = margin(t=0,r=0,b=0,l=0), 
+               panel.grid.major.y = element_line(colour="grey"), 
                panel.grid.minor = element_blank(), panel.background = element_blank(), 
-               axis.line = element_line(colour = "black"), axis.text = element_text(size=10), 
-               axis.title = element_text(size=10)) 
+               axis.line = element_line(colour = "black"), 
+               axis.text = element_text(size=9, family="Times New Roman"),
+               axis.title = element_text(size=10, family="Times New Roman")) 
 #******************************************************************************************#
 
 #******************************************************************************************#

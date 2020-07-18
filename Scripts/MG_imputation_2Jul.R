@@ -1,7 +1,7 @@
 #******************************************************************************************#
 # This is the script for imputing missing data for all Community Hall                      #
 # Author: K Bhargava                                                                       #
-# Last updated on: 2nd July 2020                                                           #
+# Last updated on: 17th July 2020                                                          #
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -19,6 +19,7 @@ library(here)
 # Set working directory 
 filepath <- "Data"
 plot_dir <- "Plots/Paper 5"
+MONTHS <- c("Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar")
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -33,9 +34,10 @@ mg_hourly <- mg_hourly %>% mutate(date = as.Date(date))
 methodImpute <- c("ma")
 # Impute missing values for all variables
 variables <- c("Battery.Monitor.Charged.Energy", "Battery.Monitor.Discharged.Energy",  
-               "Battery.Monitor.State.of.charge..", "Solar.Charger.PV.power",
-               "System.overview.AC.Consumption.L1.W", "Nur.1A.CPE1.LED1_P", 
-               "Nur.1A.CPE1.LED2_P", "Nur.1A.CPE1.LED3_P", "Nur.1A.CPE2.LED1_P", 
+               "Battery.Monitor.State.of.charge..", "Battery.Monitor.Voltage.V", 
+               "Solar.Charger.Battery.watts.W", "Solar.Charger.PV.power", 
+               "System.overview.AC.Consumption.L1.W", "System.overview.Battery.Power.W",
+               "Nur.1A.CPE1.LED1_P", "Nur.1A.CPE1.LED2_P", "Nur.1A.CPE1.LED3_P", "Nur.1A.CPE2.LED1_P", 
                "Nur.1A.CPE2.LED2_P", "Nur.1A.CPE2.LED3_P", "Nur.1A.S1.AC_Day_Energy_session", 
                "Nur.1A.S1.vRELAY1_LVL", "Nur.1A.S2.AC_Day_Energy_session", 
                "Nur.1A.S2.vRELAY1_LVL", "Nur.1B.CPE3.LED1_P", "Nur.1B.CPE3.LED2_P", 
@@ -101,13 +103,12 @@ write.csv(na_seadec_imputedData, file=here(filepath,"na_seadec_ma_data.csv"), ro
 
 #******************************************************************************************#
 #Read in data files and plot data
-na_seadec_imputedData <- read.csv(here(filepath,"na_seadec_ma_data.csv"), 
-                                  header=TRUE, stringsAsFactors = FALSE)
+na_seadec_imputedData <- read.csv(here(filepath,"na_seadec_ma_data.csv"), header=TRUE, 
+                                  stringsAsFactors = FALSE)
 na_seadec_imputedData <- na_seadec_imputedData %>% 
   mutate(date=as.Date(date),timestamp=as.POSIXct(timestamp,tz="GMT",origin="1970-01-01"),
-         month = factor(month, levels = c("Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"),
-                        labels = c("Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar")))
-na_seadec_sub <- gather(na_seadec_imputedData, "id", "value", c(3:172))
+         month = factor(month, levels = MONTHS, labels = MONTHS))
+na_seadec_sub <- gather(na_seadec_imputedData, "id", "value", c(3:179))
 
 # Plot data for all variables to visualise original and imputed data
 plotHourly <- function(df) {
@@ -120,104 +121,109 @@ plotHourly <- function(df) {
 plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(1:6)],]) +
   labs(title="Original and imputed Charged and discharged energy and SoC")
 ggsave(here(plot_dir,"imputed_soc.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(149:150,169:170)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(153:154,173:174)],]) +
   labs(title="Original and imputed PV power and AC load data")
 ggsave(here(plot_dir,"imputed_pv_ac.png"))
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(151:152,175:176)],]) +
+  labs(title="Original and imputed solar battery power and system battery power")
+ggsave(here(plot_dir,"imputed_bp.png"))
 
 # Plot CPE data
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(7:12)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(9:14)],]) +
   labs(title="Original and imputed CPE 1 data")
 ggsave(here(plot_dir,"imputed_cpe1.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(13:18)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(15:20)],]) +
   labs(title="Original and imputed CPE 2 data")
 ggsave(here(plot_dir,"imputed_cpe2.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(27:32)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(29:34)],]) +
   labs(title="Original and imputed CPE 3 data")
 ggsave(here(plot_dir,"imputed_cpe3.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(33:38)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(35:40)],]) +
   labs(title="Original and imputed CPE 4 data")
 ggsave(here(plot_dir,"imputed_cpe4.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(43:48)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(45:50)],]) +
   labs(title="Original and imputed CPE 5 data")
 ggsave(here(plot_dir,"imputed_cpe5.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(49:54)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(51:56)],]) +
   labs(title="Original and imputed CPE 6 data")
 ggsave(here(plot_dir,"imputed_cpe6.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(59:64)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(61:66)],]) +
   labs(title="Original and imputed CPE 7 data")
 ggsave(here(plot_dir,"imputed_cpe7.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(65:70)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(67:72)],]) +
   labs(title="Original and imputed CPE 8 data")
 ggsave(here(plot_dir,"imputed_cpe8.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(85:90)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(87:92)],]) +
   labs(title="Original and imputed CPE 9 data")
 ggsave(here(plot_dir,"imputed_cpe9.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(79:84)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(81:86)],]) +
   labs(title="Original and imputed CPE 10 data")
 ggsave(here(plot_dir,"imputed_cpe10.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(95:100)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(97:102)],]) +
   labs(title="Original and imputed CPE 11 data")
 ggsave(here(plot_dir,"imputed_cpe11.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(101:106)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(103:108)],]) +
   labs(title="Original and imputed CPE 12 data")
 ggsave(here(plot_dir,"imputed_cpe12.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(111:116)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(113:118)],]) +
   labs(title="Original and imputed Playground CPE 1 data")
 ggsave(here(plot_dir,"imputed_cpe13.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(117:122)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(119:124)],]) +
   labs(title="Original and imputed Playground CPE 2 data")
 ggsave(here(plot_dir,"imputed_cpe14.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(123:128)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(125:130)],]) +
   labs(title="Original and imputed Playground CPE 3 data")
 ggsave(here(plot_dir,"imputed_cpe15.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(129:134)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(131:136)],]) +
   labs(title="Original and imputed Playground CPE 4 data")
 ggsave(here(plot_dir,"imputed_cpe16.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(135:140)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(137:142)],]) +
   labs(title="Original and imputed Playground CPE 5 data")
 ggsave(here(plot_dir,"imputed_cpe17.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(151:156)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(155:160)],]) +
   labs(title="Original and imputed SL CPE 1 data")
 ggsave(here(plot_dir,"imputed_cpe18.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(157:162)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(161:166)],]) +
   labs(title="Original and imputed SL CPE 2 data")
 ggsave(here(plot_dir,"imputed_cpe19.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(163:168)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(167:172)],]) +
   labs(title="Original and imputed SL CPE 3 data")
 ggsave(here(plot_dir,"imputed_cpe20.png"))
 
 # Plot socket data
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(19:22)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(21:24)],]) +
   labs(title="Original and imputed nur 1A S1 data")
 ggsave(here(plot_dir,"imputed_s1.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(23:26)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(25:28)],]) +
   labs(title="Original and imputed nur 1A S2 data")
 ggsave(here(plot_dir,"imputed_s2.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(39:42)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(41:44)],]) +
   labs(title="Original and imputed nur 1B S1 data")
 ggsave(here(plot_dir,"imputed_s3.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(55:58)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(57:60)],]) +
   labs(title="Original and imputed nur 1C S1 data")
 ggsave(here(plot_dir,"imputed_s4.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(71:74)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(73:76)],]) +
   labs(title="Original and imputed nur 2A S1 data")
 ggsave(here(plot_dir,"imputed_s5.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(75:78)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(77:80)],]) +
   labs(title="Original and imputed nur 2A S2 data")
 ggsave(here(plot_dir,"imputed_s6.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(91:94)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(93:96)],]) +
   labs(title="Original and imputed nur 2B S1 data")
 ggsave(here(plot_dir,"imputed_s7.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(107:110)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(109:112)],]) +
   labs(title="Original and imputed nur 2C S1 data")
 ggsave(here(plot_dir,"imputed_s8.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(141:144)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(143:146)],]) +
   labs(title="Original and imputed Playground S1 data")
 ggsave(here(plot_dir,"imputed_s9.png"))
-plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(145:148)],]) +
+plotHourly(na_seadec_sub[na_seadec_sub$id %in% unique(na_seadec_sub$id)[c(147:150)],]) +
   labs(title="Original and imputed Playground S2 data")
 ggsave(here(plot_dir,"imputed_s10.png"))
+#******************************************************************************************#
 
+#******************************************************************************************#
 # Compute statistics for original and imputed data
 stats_na_seadec_sub <- na_seadec_sub %>% group_by(id) %>%
   summarise(mean = mean(value, na.rm=TRUE), median = median(value, na.rm=TRUE), 
@@ -225,36 +231,78 @@ stats_na_seadec_sub <- na_seadec_sub %>% group_by(id) %>%
             kurt = kurtosis(value, na.rm=TRUE))
 stats_na_seadec_sub <- as.data.frame(stats_na_seadec_sub)  
 stats_na_seadec_sub <- stats_na_seadec_sub[complete.cases(stats_na_seadec_sub),]
-stats_na_seadec_sub <- gather(stats_na_seadec_sub, "variable", "value", 2:6)
-
-# Plot statistics to visualise the diff in mean, median and sd of original and imputed data
-# System data: 1:6,149:150,169:170; sockets: 19:26,39:42,55:58,71:78,91:94,107:110,141:148; 
-# cpe: 7:18, 27:38, 43:54, 59:70, 79:90, 95:106, 111:122, 123:134, 135:156, 157:168
-ggplot(stats_na_seadec_sub[stats_na_seadec_sub$id %in% unique(stats_na_seadec_sub$id)[c(123:134, 135:156, 157:168)] & 
-                             stats_na_seadec_sub$variable=="mean",], 
-       aes(id, abs(value))) + geom_bar(stat="identity", width=.3, position = "dodge")  + 
-  theme(axis.text.x = element_text(angle=90))
-ggplot(stats_na_seadec_sub[stats_na_seadec_sub$id %in% unique(stats_na_seadec_sub$id)[c(123:134, 135:156, 157:168)] & 
-                             stats_na_seadec_sub$variable=="median",], 
-       aes(id, abs(value))) + geom_bar(stat="identity", width=.3, position = "dodge")  + 
-  theme(axis.text.x = element_text(angle=90))
-ggplot(stats_na_seadec_sub[stats_na_seadec_sub$id %in% unique(stats_na_seadec_sub$id)[c(123:134, 135:156, 157:168)] & 
-                             stats_na_seadec_sub$variable=="sd",], 
-       aes(id, abs(value))) + geom_bar(stat="identity", width=.3, position = "dodge")  + 
-  theme(axis.text.x = element_text(angle=90))
-
 # Save the statistics file
 write.csv(stats_na_seadec_sub, file=here(filepath,"stats_na_seadec.csv"), row.names=FALSE)
+#******************************************************************************************#
 
+#******************************************************************************************#
+#* Correct data: replace negative values with zero for all variables except System Battery Power
 # Compare value ranges of original and imputed data 
 value_ranges <- na_seadec_sub %>% group_by(id) %>% 
   summarise(minValue=min(value,na.rm=TRUE), maxValue=max(value,na.rm=TRUE))
 
-# To correct negative values - all values must be positive
-na_seadec_correctedData <- na_seadec_sub %>% mutate(value=ifelse(value<0,0,value))
-value_ranges <- na_seadec_correctedData %>% group_by(id) %>% 
-  summarise(minValue=min(value,na.rm=TRUE), maxValue=max(value,na.rm=TRUE))
-na_seadec_correctedData <- spread(na_seadec_correctedData, id, value)
+na_seadec_sub[!(na_seadec_sub$id=="System.overview.Battery.Power.W_ma" | 
+                na_seadec_sub$id=="System.overview.Battery.Power.W_original"),] <- 
+  na_seadec_sub[!(na_seadec_sub$id=="System.overview.Battery.Power.W_ma" | 
+                    na_seadec_sub$id=="System.overview.Battery.Power.W_original"),] %>%
+  mutate(value=ifelse(value<0,0,value))
+na_seadec_correctedData <- spread(na_seadec_sub, id, value)
+
+# Correct SoC, calculate +ve/-ve battery power, +ve/-ve solar battery power
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Battery.Monitor.State.of.charge.._ma=ifelse(Battery.Monitor.State.of.charge.._ma>100,100,
+                                                     Battery.Monitor.State.of.charge.._ma),
+         Positive.Solar.Battery.Power_ma=ifelse(Solar.Charger.Battery.watts.W_ma<0,0,
+                                                Solar.Charger.Battery.watts.W_ma),
+         Negative.Solar.Battery.Power_ma=ifelse(Solar.Charger.Battery.watts.W_ma>0,0,
+                                                Solar.Charger.Battery.watts.W_ma),
+         Positive.Solar.Battery.Power_original=ifelse(Solar.Charger.Battery.watts.W_original<0,0,
+                                                      Solar.Charger.Battery.watts.W_original),
+         Negative.Solar.Battery.Power_original=ifelse(Solar.Charger.Battery.watts.W_original>0,0,
+                                                      Solar.Charger.Battery.watts.W_original),
+         Positive.System.Battery.Power_ma=ifelse(System.overview.Battery.Power.W_ma<0,0,
+                                                 System.overview.Battery.Power.W_ma),
+         Negative.System.Battery.Power_ma=ifelse(System.overview.Battery.Power.W_ma>0,0,
+                                                 System.overview.Battery.Power.W_ma),
+         Positive.System.Battery.Power_original=ifelse(System.overview.Battery.Power.W_original<0,0,
+                                                       System.overview.Battery.Power.W_original),
+         Negative.System.Battery.Power_original=ifelse(System.overview.Battery.Power.W_original>0,0,
+                                                       System.overview.Battery.Power.W_original))
+#******************************************************************************************#
+
+#******************************************************************************************#
+# Based on SoC, calculate actual PV power, Solar Battery power, AC consumption,
+# System Battery power, +ve/-ve actual solar battery power, +ve/-ve actual battery power
+# Cut off voltage for SoC: 
+na_seadec_correctedData <- na_seadec_correctedData %>%
+  mutate(Actual.PV.power.W_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 &
+                                        is.na(Battery.Monitor.State.of.charge.._original)), 0, 
+                                     Solar.Charger.PV.power_ma),
+         Actual.Solar.Charger.Battery.Power_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 & 
+                                                         is.na(Solar.Charger.Battery.watts.W_original)),0,
+                                                      Solar.Charger.Battery.watts.W_ma),
+         Actual.AC.consumption_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 & 
+                                            is.na(System.overview.AC.Consumption.L1.W_original)),0,
+                                         System.overview.AC.Consumption.L1.W_ma),
+         Actual.System.Battery.Power_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 &
+                                                  is.na(System.overview.Battery.Power.W_original)), 0,
+                                               System.overview.Battery.Power.W_ma),
+         Positive.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma<0,0,
+                                                               Actual.Solar.Charger.Battery.Power_ma),
+         Negative.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma>0,0,
+                                                               Actual.Solar.Charger.Battery.Power_ma),
+         Positive.Actual.System.Battery.Power_ma=ifelse(Actual.System.Battery.Power_ma<0,0,
+                                                        Actual.System.Battery.Power_ma),
+         Negative.Actual.System.Battery.Power_ma=ifelse(Actual.System.Battery.Power_ma>0,0,
+                                                        Actual.System.Battery.Power_ma))
+
+
+# Change the actual load values to zero between 4th and 18th of Sep - check if missing
+
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate()
+#******************************************************************************************#
+
 # Save corrected data
 na_seadec_correctedData <- na_seadec_correctedData %>% mutate(month=as.character(month))
 write.csv(na_seadec_correctedData, file=here(filepath,"na_seadec_correctedData.csv"), row.names=FALSE)
