@@ -1,7 +1,7 @@
 #******************************************************************************************#
 # This is the script for imputing missing data for all Community Hall                      #
 # Author: K Bhargava                                                                       #
-# Last updated on: 17th July 2020                                                          #
+# Last updated on: 21st July 2020                                                          #
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -33,41 +33,7 @@ mg_hourly <- mg_hourly %>% mutate(date = as.Date(date))
 # Imputation using na_seadec owing to seasonality - works on univariate time series
 methodImpute <- c("ma")
 # Impute missing values for all variables
-variables <- c("Battery.Monitor.Charged.Energy", "Battery.Monitor.Discharged.Energy",  
-               "Battery.Monitor.State.of.charge..", "Battery.Monitor.Voltage.V", 
-               "Solar.Charger.Battery.watts.W", "Solar.Charger.PV.power", 
-               "System.overview.AC.Consumption.L1.W", "System.overview.Battery.Power.W",
-               "Nur.1A.CPE1.LED1_P", "Nur.1A.CPE1.LED2_P", "Nur.1A.CPE1.LED3_P", "Nur.1A.CPE2.LED1_P", 
-               "Nur.1A.CPE2.LED2_P", "Nur.1A.CPE2.LED3_P", "Nur.1A.S1.AC_Day_Energy_session", 
-               "Nur.1A.S1.vRELAY1_LVL", "Nur.1A.S2.AC_Day_Energy_session", 
-               "Nur.1A.S2.vRELAY1_LVL", "Nur.1B.CPE3.LED1_P", "Nur.1B.CPE3.LED2_P", 
-               "Nur.1B.CPE3.LED3_P", "Nur.1B.CPE4.LED1_P", "Nur.1B.CPE4.LED2_P", 
-               "Nur.1B.CPE4.LED3_P", "Nur.1B.S1.AC_Day_Energy_session", 
-               "Nur.1B.S1.vRELAY1_LVL", "Nur.1C.CPE5.LED1_P", "Nur.1C.CPE5.LED2_P", 
-               "Nur.1C.CPE5.LED3_P", "Nur.1C.CPE6.LED1_P", "Nur.1C.CPE6.LED2_P", 
-               "Nur.1C.CPE6.LED3_P", "Nur.1C.S1.AC_Day_Energy_session", 
-               "Nur.1C.S1.vRELAY1_LVL", "Nur.2A.CPE7.LED1_P", "Nur.2A.CPE7.LED2_P", 
-               "Nur.2A.CPE7.LED3_P", "Nur.2A.CPE8.LED1_P", "Nur.2A.CPE8.LED2_P", 
-               "Nur.2A.CPE8.LED3_P", "Nur.2A.S1.AC_Day_Energy_session", 
-               "Nur.2A.S1.vRELAY1_LVL", "Nur.2A.S2.AC_Day_Energy_session", 
-               "Nur.2A.S2.vRELAY1_LVL", "Nur.2B.CPE10.LED1_P", "Nur.2B.CPE10.LED2_P", 
-               "Nur.2B.CPE10.LED3_P", "Nur.2B.CPE9.LED1_P", "Nur.2B.CPE9.LED2_P", 
-               "Nur.2B.CPE9.LED3_P", "Nur.2B.S1.AC_Day_Energy_session", 
-               "Nur.2B.S1.vRELAY1_LVL", "Nur.2C.CPE11.LED1_P", "Nur.2C.CPE11.LED2_P", 
-               "Nur.2C.CPE11.LED3_P", "Nur.2C.CPE12.LED1_P" , "Nur.2C.CPE12.LED2_P", 
-               "Nur.2C.CPE12.LED3_P", "Nur.2C.S1.AC_Day_Energy_session", 
-               "Nur.2C.S1.vRELAY1_LVL", "Playground.CPE1.LED1_P", "Playground.CPE1.LED2_P", 
-               "Playground.CPE1.LED3_P", "Playground.CPE2.LED1_P", "Playground.CPE2.LED2_P", 
-               "Playground.CPE2.LED3_P", "Playground.CPE3.LED1_P", "Playground.CPE3.LED2_P", 
-               "Playground.CPE3.LED3_P", "Playground.CPE4.LED1_P", "Playground.CPE4.LED2_P", 
-               "Playground.CPE4.LED3_P", "Playground.CPE5.LED1_P", "Playground.CPE5.LED2_P", 
-               "Playground.CPE5.LED3_P", "Playground.S1.AC_Day_Energy_session", 
-               "Playground.S1.vRELAY1_LVL", "Playground.S2.AC_Day_Energy_session", 
-               "Playground.S2.vRELAY1_LVL", "Streetlight.1.CPE.LED1_P", 
-               "Streetlight.1.CPE.LED2_P", "Streetlight.1.CPE.LED3_P", 
-               "Streetlight.2.CPE.LED1_P", "Streetlight.2.CPE.LED2_P", 
-               "Streetlight.2.CPE.LED3_P", "Streetlight.3.CPE.LED1_P", 
-               "Streetlight.3.CPE.LED2_P", "Streetlight.3.CPE.LED3_P")
+variables <- colnames(mg_hourly)[3:90]
 na_seadec_imputedData <- data.frame()
 for(k in seq_along(variables)) {
   df <- mg_hourly[c("date","timeUse",variables[k])]
@@ -110,7 +76,7 @@ na_seadec_imputedData <- na_seadec_imputedData %>%
          month = factor(month, levels = MONTHS, labels = MONTHS))
 na_seadec_sub <- gather(na_seadec_imputedData, "id", "value", c(3:179))
 
-# Plot data for all variables to visualise original and imputed data
+# Plot data for all variables to visualize original and imputed data
 plotHourly <- function(df) {
   ggplot(df, aes(timestamp, value)) + facet_wrap(~id, scales = "free", ncol=2) + 
     geom_line(linetype=3) + theme(legend.position = "bottom") + 
@@ -248,7 +214,7 @@ na_seadec_sub[!(na_seadec_sub$id=="System.overview.Battery.Power.W_ma" |
   mutate(value=ifelse(value<0,0,value))
 na_seadec_correctedData <- spread(na_seadec_sub, id, value)
 
-# Correct SoC, calculate +ve/-ve battery power, +ve/-ve solar battery power
+# Correct SoC, and calculate +ve/-ve battery power and +ve/-ve solar battery power
 na_seadec_correctedData <- na_seadec_correctedData %>% 
   mutate(Battery.Monitor.State.of.charge.._ma=ifelse(Battery.Monitor.State.of.charge.._ma>100,100,
                                                      Battery.Monitor.State.of.charge.._ma),
@@ -271,22 +237,317 @@ na_seadec_correctedData <- na_seadec_correctedData %>%
 #******************************************************************************************#
 
 #******************************************************************************************#
+# Estimate power outages based on SoC - cut off at 60% SOC for CPE and 40% for others taken from Hall data
 # Based on SoC, calculate actual PV power, Solar Battery power, AC consumption,
 # System Battery power, +ve/-ve actual solar battery power, +ve/-ve actual battery power
-# Cut off voltage for SoC: 
+socThresh <- 40
+cpeThresh <- 60
 na_seadec_correctedData <- na_seadec_correctedData %>%
-  mutate(Actual.PV.power.W_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 &
-                                        is.na(Battery.Monitor.State.of.charge.._original)), 0, 
-                                     Solar.Charger.PV.power_ma),
-         Actual.Solar.Charger.Battery.Power_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 & 
-                                                         is.na(Solar.Charger.Battery.watts.W_original)),0,
-                                                      Solar.Charger.Battery.watts.W_ma),
-         Actual.AC.consumption_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 & 
-                                            is.na(System.overview.AC.Consumption.L1.W_original)),0,
-                                         System.overview.AC.Consumption.L1.W_ma),
-         Actual.System.Battery.Power_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=40 &
-                                                  is.na(System.overview.Battery.Power.W_original)), 0,
-                                               System.overview.Battery.Power.W_ma),
+  mutate(Actual.Nur.1A.CPE1.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE1.LED1_P_original),0,Nur.1A.CPE1.LED1_P_ma),
+         Actual.Nur.1A.CPE1.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE1.LED2_P_original),0,Nur.1A.CPE1.LED2_P_ma),
+         Actual.Nur.1A.CPE1.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE1.LED3_P_original),0,Nur.1A.CPE1.LED3_P_ma),
+         Actual.Nur.1A.CPE2.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE2.LED1_P_original),0,Nur.1A.CPE2.LED1_P_ma),
+         Actual.Nur.1A.CPE2.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE2.LED2_P_original),0,Nur.1A.CPE2.LED2_P_ma),
+         Actual.Nur.1A.CPE2.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1A.CPE2.LED3_P_original),0,Nur.1A.CPE2.LED3_P_ma),
+         Actual.Nur.1B.CPE3.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE3.LED1_P_original),0,Nur.1B.CPE3.LED1_P_ma),
+         Actual.Nur.1B.CPE3.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE3.LED2_P_original),0,Nur.1B.CPE3.LED2_P_ma),
+         Actual.Nur.1B.CPE3.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE3.LED3_P_original),0,Nur.1B.CPE3.LED3_P_ma),
+         Actual.Nur.1B.CPE4.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE4.LED1_P_original),0,Nur.1B.CPE4.LED1_P_ma),
+         Actual.Nur.1B.CPE4.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE4.LED2_P_original),0,Nur.1B.CPE4.LED2_P_ma),
+         Actual.Nur.1B.CPE4.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1B.CPE4.LED3_P_original),0,Nur.1B.CPE4.LED3_P_ma),
+         Actual.Nur.1C.CPE5.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE5.LED1_P_original),0,Nur.1C.CPE5.LED1_P_ma),
+         Actual.Nur.1C.CPE5.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE5.LED2_P_original),0,Nur.1C.CPE5.LED2_P_ma),
+         Actual.Nur.1C.CPE5.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE5.LED3_P_original),0,Nur.1C.CPE5.LED3_P_ma),
+         Actual.Nur.1C.CPE6.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE6.LED1_P_original),0,Nur.1C.CPE6.LED1_P_ma),
+         Actual.Nur.1C.CPE6.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE6.LED2_P_original),0,Nur.1C.CPE6.LED2_P_ma),
+         Actual.Nur.1C.CPE6.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.1C.CPE6.LED3_P_original),0,Nur.1C.CPE6.LED3_P_ma),
+         Actual.Nur.2A.CPE7.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE7.LED1_P_original),0,Nur.2A.CPE7.LED1_P_ma),
+         Actual.Nur.2A.CPE7.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE7.LED2_P_original),0,Nur.2A.CPE7.LED2_P_ma),
+         Actual.Nur.2A.CPE7.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE7.LED3_P_original),0,Nur.2A.CPE7.LED3_P_ma),
+         Actual.Nur.2A.CPE8.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE8.LED1_P_original),0,Nur.2A.CPE8.LED1_P_ma),
+         Actual.Nur.2A.CPE8.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE8.LED2_P_original),0,Nur.2A.CPE8.LED2_P_ma),
+         Actual.Nur.2A.CPE8.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2A.CPE8.LED3_P_original),0,Nur.2A.CPE8.LED3_P_ma),
+         Actual.Nur.2B.CPE9.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE9.LED1_P_original),0,Nur.2B.CPE9.LED1_P_ma),
+         Actual.Nur.2B.CPE9.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE9.LED2_P_original),0,Nur.2B.CPE9.LED2_P_ma),
+         Actual.Nur.2B.CPE9.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE9.LED3_P_original),0,Nur.2B.CPE9.LED3_P_ma),
+         Actual.Nur.2B.CPE10.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE10.LED1_P_original),0,Nur.2B.CPE10.LED1_P_ma),
+         Actual.Nur.2B.CPE10.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE10.LED2_P_original),0,Nur.2B.CPE10.LED2_P_ma),
+         Actual.Nur.2B.CPE10.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2B.CPE10.LED3_P_original),0,Nur.2B.CPE10.LED3_P_ma),
+         Actual.Nur.2C.CPE11.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2C.CPE11.LED1_P_original),0,Nur.2C.CPE11.LED1_P_ma),
+         Actual.Nur.2C.CPE11.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2C.CPE11.LED2_P_original),0,Nur.2C.CPE11.LED2_P_ma),
+         Actual.Nur.2C.CPE11.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                               is.na(Nur.2C.CPE11.LED3_P_original),0,Nur.2C.CPE11.LED3_P_ma),
+         Actual.Nur.2C.CPE12.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                                is.na(Nur.2C.CPE12.LED1_P_original),0,Nur.2C.CPE12.LED1_P_ma),
+         Actual.Nur.2C.CPE12.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                                is.na(Nur.2C.CPE12.LED2_P_original),0,Nur.2C.CPE12.LED2_P_ma),
+         Actual.Nur.2C.CPE12.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                                is.na(Nur.2C.CPE12.LED3_P_original),0,Nur.2C.CPE12.LED3_P_ma),
+         Actual.Playground.CPE1.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE1.LED1_P_original), 0, Playground.CPE1.LED1_P_ma),
+         Actual.Playground.CPE1.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE1.LED2_P_original), 0, Playground.CPE1.LED2_P_ma),
+         Actual.Playground.CPE1.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE1.LED3_P_original), 0, Playground.CPE1.LED3_P_ma),
+         Actual.Playground.CPE2.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE2.LED1_P_original), 0, Playground.CPE2.LED1_P_ma),
+         Actual.Playground.CPE2.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE2.LED2_P_original), 0, Playground.CPE2.LED2_P_ma),
+         Actual.Playground.CPE2.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                      is.na(Playground.CPE2.LED3_P_original), 0, Playground.CPE2.LED3_P_ma),
+         Actual.Playground.CPE3.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE3.LED1_P_original), 0, Playground.CPE3.LED1_P_ma),
+         Actual.Playground.CPE3.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE3.LED2_P_original), 0, Playground.CPE3.LED2_P_ma),
+         Actual.Playground.CPE3.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE3.LED3_P_original), 0, Playground.CPE3.LED3_P_ma),
+         Actual.Playground.CPE4.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE4.LED1_P_original), 0, Playground.CPE4.LED1_P_ma),
+         Actual.Playground.CPE4.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE4.LED2_P_original), 0, Playground.CPE4.LED2_P_ma),
+         Actual.Playground.CPE4.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE4.LED3_P_original), 0, Playground.CPE4.LED3_P_ma),
+         Actual.Playground.CPE5.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE5.LED1_P_original), 0, Playground.CPE5.LED1_P_ma),
+         Actual.Playground.CPE5.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE5.LED2_P_original), 0, Playground.CPE5.LED2_P_ma),
+         Actual.Playground.CPE5.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                     is.na(Playground.CPE5.LED3_P_original), 0, Playground.CPE5.LED3_P_ma),
+         Actual.Streetlight.1.CPE.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.1.CPE.LED1_P_original),0,Streetlight.1.CPE.LED1_P_ma),
+         Actual.Streetlight.1.CPE.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.1.CPE.LED2_P_original),0,Streetlight.1.CPE.LED2_P_ma),
+         Actual.Streetlight.1.CPE.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.1.CPE.LED3_P_original),0,Streetlight.1.CPE.LED3_P_ma),
+         Actual.Streetlight.2.CPE.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.2.CPE.LED1_P_original),0,Streetlight.2.CPE.LED1_P_ma),
+         Actual.Streetlight.2.CPE.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.2.CPE.LED2_P_original),0,Streetlight.2.CPE.LED2_P_ma),
+         Actual.Streetlight.2.CPE.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.2.CPE.LED3_P_original),0,Streetlight.2.CPE.LED3_P_ma),
+         Actual.Streetlight.3.CPE.LED1_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.3.CPE.LED1_P_original),0,Streetlight.3.CPE.LED1_P_ma),
+         Actual.Streetlight.3.CPE.LED2_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.3.CPE.LED2_P_original),0,Streetlight.3.CPE.LED2_P_ma),
+         Actual.Streetlight.3.CPE.LED3_P_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=cpeThresh & 
+                                    is.na(Streetlight.3.CPE.LED3_P_original),0,Streetlight.3.CPE.LED3_P_ma),
+         Actual.Nur.1A.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.1A.S1.AC_Day_Energy_session_original),0,Nur.1A.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.1A.S2.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.1A.S2.AC_Day_Energy_session_original),0,Nur.1A.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.1B.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.1B.S1.AC_Day_Energy_session_original),0,Nur.1B.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.1C.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.1C.S1.AC_Day_Energy_session_original),0,Nur.1C.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.2A.S1.AC_Day_Energy_session_original),0,Nur.2A.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S2.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.2A.S2.AC_Day_Energy_session_original),0,Nur.2A.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.2B.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.2B.S1.AC_Day_Energy_session_original),0,Nur.2B.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2C.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                      is.na(Nur.2C.S1.AC_Day_Energy_session_original),0,Nur.2C.S1.AC_Day_Energy_session_ma),
+         Actual.Playground.S1.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+              is.na(Playground.S1.AC_Day_Energy_session_original),0,Playground.S1.AC_Day_Energy_session_ma),
+         Actual.Playground.S2.AC_Day_Energy_session_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+              is.na(Playground.S2.AC_Day_Energy_session_original),0,Playground.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.1A.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.1A.S1.vRELAY1_LVL_original),0,Nur.1A.S1.vRELAY1_LVL_ma),
+         Actual.Nur.1A.S2.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.1A.S2.vRELAY1_LVL_original),0,Nur.1A.S2.vRELAY1_LVL_ma),
+         Actual.Nur.1B.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.1B.S1.vRELAY1_LVL_original),0,Nur.1B.S1.vRELAY1_LVL_ma),
+         Actual.Nur.1C.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.1C.S1.vRELAY1_LVL_original),0,Nur.1C.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2A.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.2A.S1.vRELAY1_LVL_original),0,Nur.2A.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2A.S2.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.2A.S2.vRELAY1_LVL_original),0,Nur.2A.S2.vRELAY1_LVL_ma),
+         Actual.Nur.2B.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.2B.S1.vRELAY1_LVL_original),0,Nur.2B.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2C.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                          is.na(Nur.2C.S1.vRELAY1_LVL_original),0,Nur.2C.S1.vRELAY1_LVL_ma),
+         Actual.Playground.S1.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh & 
+                                 is.na(Playground.S1.vRELAY1_LVL_original), 0,Playground.S1.vRELAY1_LVL_ma),
+         Actual.Playground.S2.vRELAY1_LVL_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh & 
+                                 is.na(Playground.S2.vRELAY1_LVL_original), 0,Playground.S2.vRELAY1_LVL_ma),
+         Actual.Solar.Charger.Battery.Power_ma=ifelse(Battery.Monitor.State.of.charge.._ma<=socThresh & 
+                          is.na(Solar.Charger.Battery.watts.W_original),0,Solar.Charger.Battery.watts.W_ma),
+         Actual.PV.power.W_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=socThresh &
+                                     is.na(Solar.Charger.PV.power_original)), 0, Solar.Charger.PV.power_ma),
+         Actual.AC.consumption_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=socThresh & 
+              is.na(System.overview.AC.Consumption.L1.W_original)),0,System.overview.AC.Consumption.L1.W_ma),
+         Actual.System.Battery.Power_ma=ifelse((Battery.Monitor.State.of.charge.._ma<=socThresh &
+                     is.na(System.overview.Battery.Power.W_original)), 0,System.overview.Battery.Power.W_ma),
+         Positive.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma<0,0,
+                                                               Actual.Solar.Charger.Battery.Power_ma),
+         Negative.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma>0,0,
+                                                               Actual.Solar.Charger.Battery.Power_ma),
+         Positive.Actual.System.Battery.Power_ma=ifelse(Actual.System.Battery.Power_ma<0,0,
+                                                        Actual.System.Battery.Power_ma),
+         Negative.Actual.System.Battery.Power_ma=ifelse(Actual.System.Battery.Power_ma>0,0,
+                                                        Actual.System.Battery.Power_ma))
+#******************************************************************************************#
+
+#******************************************************************************************#
+# Apply corrections based on component failures based on check sheets
+# Get patterns of missing data (system, CPE and sockets) and map with check sheets
+missingData <- na_seadec_correctedData[,c(4, which(grepl("original", 
+                                                         colnames(na_seadec_correctedData), fixed=TRUE)))]
+missingData <- missingData[,c(1,4,78,88, which(grepl("LED1_P", colnames(missingData), fixed=TRUE)|
+                                                 grepl("LED2_P", colnames(missingData), fixed=TRUE)|
+                                                 grepl("LED3_P", colnames(missingData), fixed=TRUE)|
+                                                 grepl("vRELAY1_LVL", colnames(missingData), fixed=TRUE) ))]
+missingData$load <- rowSums(missingData[5:74], na.rm=TRUE) 
+missingData <- missingData[,c(1:4,75,which(grepl("LED2_P", colnames(missingData), fixed=TRUE) | 
+                                             grepl("vRELAY1_LVL", colnames(missingData), fixed=TRUE) ))]
+ggplot(missingData, aes(x=timestamp)) + 
+  geom_line(aes(y=System.overview.AC.Consumption.L1.W_original), color="blue") + geom_line(aes(y=load)) 
+
+missingData <- gather(missingData, id, value, 2:35)
+missingData <- missingData %>% mutate(month=month(timestamp, label=TRUE, abbr=TRUE))
+missingLevel <- missingData %>% group_by(timestamp, id) %>% summarise(count=ifelse(is.na(value),0,1))
+missingLevel <- as.data.frame(missingLevel)
+missingLevel <- missingLevel %>% mutate(id=substr(id, 1, str_length(id)-9))
+missingLevel <- missingLevel %>% mutate(month=month(timestamp, label=TRUE, abbr=TRUE))
+ggplot(missingLevel[missingLevel$timestamp>="2020-03-23" & missingLevel$timestamp<="2020-03-29",], aes(timestamp, id)) + geom_tile(aes(fill = count)) + xlab("X axis") + ylab("Y axis") + 
+  labs(x = "Day of study", fill="Yield (%)") + THEME + 
+  guides(fill = guide_colorbar(barwidth = 8, barheight = 0.5))
+
+# Apply corrections based on the below reported component failures:
+# 1. All CPE, socket and system load is 0 between 4-18 Sep where original is missing due to black out
+sub_1 <- na_seadec_correctedData[na_seadec_correctedData$date>="2019-09-04" & 
+                                   na_seadec_correctedData$date<="2019-09-18",]
+sub_1 <- sub_1 %>% 
+  mutate(Actual.Nur.1A.CPE1.LED1_P_ma=ifelse(is.na(Nur.1A.CPE1.LED1_P_original),0,Actual.Nur.1A.CPE1.LED1_P_ma),
+         Actual.Nur.1A.CPE1.LED2_P_ma=ifelse(is.na(Nur.1A.CPE1.LED2_P_original),0,Actual.Nur.1A.CPE1.LED2_P_ma),
+         Actual.Nur.1A.CPE1.LED3_P_ma=ifelse(is.na(Nur.1A.CPE1.LED3_P_original),0,Actual.Nur.1A.CPE1.LED3_P_ma),
+         Actual.Nur.1A.CPE2.LED1_P_ma=ifelse(is.na(Nur.1A.CPE2.LED1_P_original),0,Actual.Nur.1A.CPE2.LED1_P_ma),
+         Actual.Nur.1A.CPE2.LED2_P_ma=ifelse(is.na(Nur.1A.CPE2.LED2_P_original),0,Actual.Nur.1A.CPE2.LED2_P_ma),
+         Actual.Nur.1A.CPE2.LED3_P_ma=ifelse(is.na(Nur.1A.CPE2.LED3_P_original),0,Actual.Nur.1A.CPE2.LED3_P_ma),
+         Actual.Nur.1B.CPE3.LED1_P_ma=ifelse(is.na(Nur.1B.CPE3.LED1_P_original),0,Actual.Nur.1B.CPE3.LED1_P_ma),
+         Actual.Nur.1B.CPE3.LED2_P_ma=ifelse(is.na(Nur.1B.CPE3.LED2_P_original),0,Actual.Nur.1B.CPE3.LED2_P_ma),
+         Actual.Nur.1B.CPE3.LED3_P_ma=ifelse(is.na(Nur.1B.CPE3.LED3_P_original),0,Actual.Nur.1B.CPE3.LED3_P_ma),
+         Actual.Nur.1B.CPE4.LED1_P_ma=ifelse(is.na(Nur.1B.CPE4.LED1_P_original),0,Actual.Nur.1B.CPE4.LED1_P_ma),
+         Actual.Nur.1B.CPE4.LED2_P_ma=ifelse(is.na(Nur.1B.CPE4.LED2_P_original),0,Actual.Nur.1B.CPE4.LED2_P_ma),
+         Actual.Nur.1B.CPE4.LED3_P_ma=ifelse(is.na(Nur.1B.CPE4.LED3_P_original),0,Actual.Nur.1B.CPE4.LED3_P_ma),
+         Actual.Nur.1C.CPE5.LED1_P_ma=ifelse(is.na(Nur.1C.CPE5.LED1_P_original),0,Actual.Nur.1C.CPE5.LED1_P_ma),
+         Actual.Nur.1C.CPE5.LED2_P_ma=ifelse(is.na(Nur.1C.CPE5.LED2_P_original),0,Actual.Nur.1C.CPE5.LED2_P_ma),
+         Actual.Nur.1C.CPE5.LED3_P_ma=ifelse(is.na(Nur.1C.CPE5.LED3_P_original),0,Actual.Nur.1C.CPE5.LED3_P_ma),
+         Actual.Nur.1C.CPE6.LED1_P_ma=ifelse(is.na(Nur.1C.CPE6.LED1_P_original),0,Actual.Nur.1C.CPE6.LED1_P_ma),
+         Actual.Nur.1C.CPE6.LED2_P_ma=ifelse(is.na(Nur.1C.CPE6.LED2_P_original),0,Actual.Nur.1C.CPE6.LED2_P_ma),
+         Actual.Nur.1C.CPE6.LED3_P_ma=ifelse(is.na(Nur.1C.CPE6.LED3_P_original),0,Actual.Nur.1C.CPE6.LED3_P_ma),
+         Actual.Nur.2A.CPE7.LED1_P_ma=ifelse(is.na(Nur.2A.CPE7.LED1_P_original),0,Actual.Nur.2A.CPE7.LED1_P_ma),
+         Actual.Nur.2A.CPE7.LED2_P_ma=ifelse(is.na(Nur.2A.CPE7.LED2_P_original),0,Actual.Nur.2A.CPE7.LED2_P_ma),
+         Actual.Nur.2A.CPE7.LED3_P_ma=ifelse(is.na(Nur.2A.CPE7.LED3_P_original),0,Actual.Nur.2A.CPE7.LED3_P_ma),
+         Actual.Nur.2A.CPE8.LED1_P_ma=ifelse(is.na(Nur.2A.CPE8.LED1_P_original),0,Actual.Nur.2A.CPE8.LED1_P_ma),
+         Actual.Nur.2A.CPE8.LED2_P_ma=ifelse(is.na(Nur.2A.CPE8.LED2_P_original),0,Actual.Nur.2A.CPE8.LED2_P_ma),
+         Actual.Nur.2A.CPE8.LED3_P_ma=ifelse(is.na(Nur.2A.CPE8.LED3_P_original),0,Actual.Nur.2A.CPE8.LED3_P_ma),
+         Actual.Nur.2B.CPE9.LED1_P_ma=ifelse(is.na(Nur.2B.CPE9.LED1_P_original),0,Actual.Nur.2B.CPE9.LED1_P_ma),
+         Actual.Nur.2B.CPE9.LED2_P_ma=ifelse(is.na(Nur.2B.CPE9.LED2_P_original),0,Actual.Nur.2B.CPE9.LED2_P_ma),
+         Actual.Nur.2B.CPE9.LED3_P_ma=ifelse(is.na(Nur.2B.CPE9.LED3_P_original),0,Actual.Nur.2B.CPE9.LED3_P_ma),
+         Actual.Nur.2B.CPE10.LED1_P_ma=ifelse(is.na(Nur.2B.CPE10.LED1_P_original),0,Actual.Nur.2B.CPE10.LED1_P_ma),
+         Actual.Nur.2B.CPE10.LED2_P_ma=ifelse(is.na(Nur.2B.CPE10.LED2_P_original),0,Actual.Nur.2B.CPE10.LED2_P_ma),
+         Actual.Nur.2B.CPE10.LED3_P_ma=ifelse(is.na(Nur.2B.CPE10.LED3_P_original),0,Actual.Nur.2B.CPE10.LED3_P_ma),
+         Actual.Nur.2C.CPE11.LED1_P_ma=ifelse(is.na(Nur.2C.CPE11.LED1_P_original),0,Actual.Nur.2C.CPE11.LED1_P_ma),
+         Actual.Nur.2C.CPE11.LED2_P_ma=ifelse(is.na(Nur.2C.CPE11.LED2_P_original),0,Actual.Nur.2C.CPE11.LED2_P_ma),
+         Actual.Nur.2C.CPE11.LED3_P_ma=ifelse(is.na(Nur.2C.CPE11.LED3_P_original),0,Actual.Nur.2C.CPE11.LED3_P_ma),
+         Actual.Nur.2C.CPE12.LED1_P_ma=ifelse(is.na(Nur.2C.CPE12.LED1_P_original),0,Actual.Nur.2C.CPE12.LED1_P_ma),
+         Actual.Nur.2C.CPE12.LED2_P_ma=ifelse(is.na(Nur.2C.CPE12.LED2_P_original),0,Actual.Nur.2C.CPE12.LED2_P_ma),
+         Actual.Nur.2C.CPE12.LED3_P_ma=ifelse(is.na(Nur.2C.CPE12.LED3_P_original),0,Actual.Nur.2C.CPE12.LED3_P_ma),
+         Actual.Playground.CPE1.LED1_P_ma=ifelse(is.na(Playground.CPE1.LED1_P_original), 0, Actual.Playground.CPE1.LED1_P_ma),
+         Actual.Playground.CPE1.LED2_P_ma=ifelse(is.na(Playground.CPE1.LED2_P_original), 0, Actual.Playground.CPE1.LED2_P_ma),
+         Actual.Playground.CPE1.LED3_P_ma=ifelse(is.na(Playground.CPE1.LED3_P_original), 0, Actual.Playground.CPE1.LED3_P_ma),
+         Actual.Playground.CPE2.LED1_P_ma=ifelse(is.na(Playground.CPE2.LED1_P_original), 0, Actual.Playground.CPE2.LED1_P_ma),
+         Actual.Playground.CPE2.LED2_P_ma=ifelse(is.na(Playground.CPE2.LED2_P_original), 0, Actual.Playground.CPE2.LED2_P_ma),
+         Actual.Playground.CPE2.LED3_P_ma=ifelse(is.na(Playground.CPE2.LED3_P_original), 0, Actual.Playground.CPE2.LED3_P_ma),
+         Actual.Playground.CPE3.LED1_P_ma=ifelse(is.na(Playground.CPE3.LED1_P_original), 0, Actual.Playground.CPE3.LED1_P_ma),
+         Actual.Playground.CPE3.LED2_P_ma=ifelse(is.na(Playground.CPE3.LED2_P_original), 0, Actual.Playground.CPE3.LED2_P_ma),
+         Actual.Playground.CPE3.LED3_P_ma=ifelse(is.na(Playground.CPE3.LED3_P_original), 0, Actual.Playground.CPE3.LED3_P_ma),
+         Actual.Playground.CPE4.LED1_P_ma=ifelse(is.na(Playground.CPE4.LED1_P_original), 0, Actual.Playground.CPE4.LED1_P_ma),
+         Actual.Playground.CPE4.LED2_P_ma=ifelse(is.na(Playground.CPE4.LED2_P_original), 0, Actual.Playground.CPE4.LED2_P_ma),
+         Actual.Playground.CPE4.LED3_P_ma=ifelse(is.na(Playground.CPE4.LED3_P_original), 0, Actual.Playground.CPE4.LED3_P_ma),
+         Actual.Playground.CPE5.LED1_P_ma=ifelse(is.na(Playground.CPE5.LED1_P_original), 0, Actual.Playground.CPE5.LED1_P_ma),
+         Actual.Playground.CPE5.LED2_P_ma=ifelse(is.na(Playground.CPE5.LED2_P_original), 0, Actual.Playground.CPE5.LED2_P_ma),
+         Actual.Playground.CPE5.LED3_P_ma=ifelse(is.na(Playground.CPE5.LED3_P_original), 0, Actual.Playground.CPE5.LED3_P_ma),
+         Actual.Streetlight.1.CPE.LED1_P_ma=ifelse(is.na(Streetlight.1.CPE.LED1_P_original),0,Actual.Streetlight.1.CPE.LED1_P_ma),
+         Actual.Streetlight.1.CPE.LED2_P_ma=ifelse(is.na(Streetlight.1.CPE.LED2_P_original),0,Actual.Streetlight.1.CPE.LED2_P_ma),
+         Actual.Streetlight.1.CPE.LED3_P_ma=ifelse(is.na(Streetlight.1.CPE.LED3_P_original),0,Actual.Streetlight.1.CPE.LED3_P_ma),
+         Actual.Streetlight.2.CPE.LED1_P_ma=ifelse(is.na(Streetlight.2.CPE.LED1_P_original),0,Actual.Streetlight.2.CPE.LED1_P_ma),
+         Actual.Streetlight.2.CPE.LED2_P_ma=ifelse(is.na(Streetlight.2.CPE.LED2_P_original),0,Actual.Streetlight.2.CPE.LED2_P_ma),
+         Actual.Streetlight.2.CPE.LED3_P_ma=ifelse(is.na(Streetlight.2.CPE.LED3_P_original),0,Actual.Streetlight.2.CPE.LED3_P_ma),
+         Actual.Streetlight.3.CPE.LED1_P_ma=ifelse(is.na(Streetlight.3.CPE.LED1_P_original),0,Actual.Streetlight.3.CPE.LED1_P_ma),
+         Actual.Streetlight.3.CPE.LED2_P_ma=ifelse(is.na(Streetlight.3.CPE.LED2_P_original),0,Actual.Streetlight.3.CPE.LED2_P_ma),
+         Actual.Streetlight.3.CPE.LED3_P_ma=ifelse(is.na(Streetlight.3.CPE.LED3_P_original),0,Actual.Streetlight.3.CPE.LED3_P_ma),
+         Actual.Nur.1A.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.1A.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.1A.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.1A.S2.AC_Day_Energy_session_ma=ifelse(is.na(Nur.1A.S2.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.1A.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.1B.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.1B.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.1B.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.1C.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.1C.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.1C.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.2A.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.2A.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S2.AC_Day_Energy_session_ma=ifelse(is.na(Nur.2A.S2.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.2A.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.2B.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.2B.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.2B.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2C.S1.AC_Day_Energy_session_ma=ifelse(is.na(Nur.2C.S1.AC_Day_Energy_session_original),0,
+                                                          Actual.Nur.2C.S1.AC_Day_Energy_session_ma),
+         Actual.Playground.S1.AC_Day_Energy_session_ma=ifelse(is.na(Playground.S1.AC_Day_Energy_session_original),
+                                                              0,Actual.Playground.S1.AC_Day_Energy_session_ma),
+         Actual.Playground.S2.AC_Day_Energy_session_ma=ifelse(is.na(Playground.S2.AC_Day_Energy_session_original),
+                                                              0,Actual.Playground.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.1A.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.1A.S1.vRELAY1_LVL_original),0,Actual.Nur.1A.S1.vRELAY1_LVL_ma),
+         Actual.Nur.1A.S2.vRELAY1_LVL_ma=ifelse(is.na(Nur.1A.S2.vRELAY1_LVL_original),0,Actual.Nur.1A.S2.vRELAY1_LVL_ma),
+         Actual.Nur.1B.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.1B.S1.vRELAY1_LVL_original),0,Actual.Nur.1B.S1.vRELAY1_LVL_ma),
+         Actual.Nur.1C.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.1C.S1.vRELAY1_LVL_original),0,Actual.Nur.1C.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2A.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.2A.S1.vRELAY1_LVL_original),0,Actual.Nur.2A.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2A.S2.vRELAY1_LVL_ma=ifelse(is.na(Nur.2A.S2.vRELAY1_LVL_original),0,Actual.Nur.2A.S2.vRELAY1_LVL_ma),
+         Actual.Nur.2B.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.2B.S1.vRELAY1_LVL_original),0,Actual.Nur.2B.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2C.S1.vRELAY1_LVL_ma=ifelse(is.na(Nur.2C.S1.vRELAY1_LVL_original),0,Actual.Nur.2C.S1.vRELAY1_LVL_ma),
+         Actual.Playground.S1.vRELAY1_LVL_ma=ifelse(is.na(Playground.S1.vRELAY1_LVL_original),0,Actual.Playground.S1.vRELAY1_LVL_ma),
+         Actual.Playground.S2.vRELAY1_LVL_ma=ifelse(is.na(Playground.S2.vRELAY1_LVL_original),0,Actual.Playground.S2.vRELAY1_LVL_ma),
+         Actual.Solar.Charger.Battery.Power_ma=ifelse(is.na(Solar.Charger.Battery.watts.W_original),0,
+                                                      Actual.Solar.Charger.Battery.Power_ma),
+         Actual.PV.power.W_ma=ifelse(is.na(Solar.Charger.PV.power_original),0,Actual.PV.power.W_ma),
+         Actual.AC.consumption_ma=ifelse(is.na(System.overview.AC.Consumption.L1.W_original),0,
+                                         Actual.AC.consumption_ma),
+         Actual.System.Battery.Power_ma=ifelse(is.na(System.overview.Battery.Power.W_original),0,
+                                               Actual.System.Battery.Power_ma),
          Positive.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma<0,0,
                                                                Actual.Solar.Charger.Battery.Power_ma),
          Negative.Actual.Solar.Charger.Battery.Power_ma=ifelse(Actual.Solar.Charger.Battery.Power_ma>0,0,
@@ -296,12 +557,90 @@ na_seadec_correctedData <- na_seadec_correctedData %>%
          Negative.Actual.System.Battery.Power_ma=ifelse(Actual.System.Battery.Power_ma>0,0,
                                                         Actual.System.Battery.Power_ma))
 
+# Remove these rows from na_seadec_corrected data and bind rows from sub_1
+na_seadec_correctedData <- na_seadec_correctedData[!(na_seadec_correctedData$date>="2019-09-04" & 
+                                                       na_seadec_correctedData$date<="2019-09-18"),] 
+na_seadec_correctedData <- rbind(na_seadec_correctedData, sub_1)
+na_seadec_correctedData <- na_seadec_correctedData[order(na_seadec_correctedData$timestamp),]
 
-# Change the actual load values to zero between 4th and 18th of Sep - check if missing
-
+# 2. Socket Nur1AS1 load is 0 from 20 Sep to 17 Feb and 20 Mar to 28 Mar
 na_seadec_correctedData <- na_seadec_correctedData %>% 
-  mutate()
-#******************************************************************************************#
+  mutate(Actual.Nur.1A.S1.AC_Day_Energy_session_ma=ifelse((date>="2019-09-20" & date<="2020-02-17" & 
+                                                            is.na(Nur.1A.S1.AC_Day_Energy_session_original))|
+                                                           (date>="2020-03-20" & date<="2020-03-28" & 
+                                                              is.na(Nur.1A.S1.AC_Day_Energy_session_original)),
+                                                          0,Actual.Nur.1A.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.1A.S1.vRELAY1_LVL_ma=ifelse((date>="2019-09-20" & date<="2020-02-17" & 
+                                                  is.na(Nur.1A.S1.vRELAY1_LVL_original)) |
+                                                (date>="2020-03-20" & date<="2020-03-28" & 
+                                                   is.na(Nur.1A.S1.vRELAY1_LVL_original)),
+                                                0,Actual.Nur.1A.S1.vRELAY1_LVL_ma))
+
+# 3. Streetlight3 (LED1,2,3) load is 0 between 1-8 Jan
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Actual.Streetlight.3.CPE.LED1_P_ma=ifelse(date>="2020-01-01" & date<="2020-01-08" & 
+                                                     is.na(Streetlight.3.CPE.LED1_P_original),0,
+                                                   Actual.Streetlight.3.CPE.LED1_P_ma),
+         Actual.Streetlight.3.CPE.LED2_P_ma=ifelse(date>="2020-01-01" & date<="2020-01-08" & 
+                                                     is.na(Streetlight.3.CPE.LED2_P_original),0,
+                                                   Actual.Streetlight.3.CPE.LED2_P_ma),            
+         Actual.Streetlight.3.CPE.LED3_P_ma=ifelse(date>="2020-01-01" & date<="2020-01-08" & 
+                                                     is.na(Streetlight.3.CPE.LED3_P_original),0,
+                                                   Actual.Streetlight.3.CPE.LED3_P_ma))
+
+# 4. Nur1ACPE2 (LED1,2,3) load is 0 between 1 Feb - 8 Mar
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Actual.Nur.1A.CPE2.LED1_P_ma=ifelse(date>="2020-02-01" & date<="2020-03-08" & 
+                                               is.na(Nur.1A.CPE2.LED1_P_original),0,
+                                             Actual.Nur.1A.CPE2.LED1_P_ma),
+         Actual.Nur.1A.CPE2.LED2_P_ma=ifelse(date>="2020-02-01" & date<="2020-03-08" & 
+                                               is.na(Nur.1A.CPE2.LED2_P_original),0,
+                                             Actual.Nur.1A.CPE2.LED2_P_ma),                  
+         Actual.Nur.1A.CPE2.LED3_P_ma=ifelse(date>="2020-02-01" & date<="2020-03-08" & 
+                                               is.na(Nur.1A.CPE2.LED3_P_original),0,
+                                             Actual.Nur.1A.CPE2.LED3_P_ma))
+
+# 5. Nur2BCPE10 (LED1,2,3) load is 0 between 6 Feb - 8 Mar
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Actual.Nur.2B.CPE10.LED1_P_ma=ifelse(date>="2020-02-06" & date<="2020-03-08" & 
+                                               is.na(Nur.2B.CPE10.LED1_P_original),0,
+                                             Actual.Nur.2B.CPE10.LED1_P_ma),
+         Actual.Nur.2B.CPE10.LED2_P_ma=ifelse(date>="2020-02-06" & date<="2020-03-08" & 
+                                               is.na(Nur.2B.CPE10.LED2_P_original),0,
+                                             Actual.Nur.2B.CPE10.LED2_P_ma),                  
+         Actual.Nur.2B.CPE10.LED3_P_ma=ifelse(date>="2020-02-06" & date<="2020-03-08" & 
+                                               is.na(Nur.2B.CPE10.LED3_P_original),0,
+                                             Actual.Nur.2B.CPE10.LED3_P_ma))
+
+# 6. Sockets at Nur2 (2AS1, 2BS1, 2CS1) load is 0 between 12 Feb - 8 Mar
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Actual.Nur.2A.S1.AC_Day_Energy_session_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                            is.na(Nur.2A.S1.AC_Day_Energy_session_original),
+                                                          0,Actual.Nur.2A.S1.AC_Day_Energy_session_ma), 
+         Actual.Nur.2B.S1.AC_Day_Energy_session_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                            is.na(Nur.2B.S1.AC_Day_Energy_session_original),
+                                                          0,Actual.Nur.2B.S1.AC_Day_Energy_session_ma),     
+         Actual.Nur.2C.S1.AC_Day_Energy_session_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                            is.na(Nur.2C.S1.AC_Day_Energy_session_original),
+                                                          0,Actual.Nur.2C.S1.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S1.vRELAY1_LVL_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                  is.na(Nur.2A.S1.vRELAY1_LVL_original),
+                                                0,Actual.Nur.2A.S1.vRELAY1_LVL_ma), 
+         Actual.Nur.2B.S1.vRELAY1_LVL_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                  is.na(Nur.2B.S1.vRELAY1_LVL_original),
+                                                0,Actual.Nur.2B.S1.vRELAY1_LVL_ma),
+         Actual.Nur.2C.S1.vRELAY1_LVL_ma=ifelse(date>="2020-02-12" & date<="2020-03-08" &
+                                                  is.na(Nur.2C.S1.vRELAY1_LVL_original),
+                                                0,Actual.Nur.2C.S1.vRELAY1_LVL_ma))
+
+# 7. Socket Nur2AS2 load is 0 between 12 Feb - 31 Mar
+na_seadec_correctedData <- na_seadec_correctedData %>% 
+  mutate(Actual.Nur.2A.S2.AC_Day_Energy_session_ma=ifelse(date>="2020-02-12" & date<="2020-03-31" & 
+                                                            is.na(Nur.2A.S2.AC_Day_Energy_session_original),
+                                                          0, Actual.Nur.2A.S2.AC_Day_Energy_session_ma),
+         Actual.Nur.2A.S2.vRELAY1_LVL_ma=ifelse(date>="2020-02-12" & date<="2020-03-31" & 
+                                                  is.na(Nur.2A.S2.vRELAY1_LVL_original),
+                                                0,Actual.Nur.2A.S2.vRELAY1_LVL_ma))
 
 # Save corrected data
 na_seadec_correctedData <- na_seadec_correctedData %>% mutate(month=as.character(month))
