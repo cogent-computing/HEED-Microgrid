@@ -10,6 +10,8 @@ library(tidyverse)
 library(lubridate)
 library(wesanderson)
 library(extrafont)
+extrafont::font_import()
+loadfonts(device="pdf")
 library(here)
 #******************************************************************************************#
 
@@ -93,5 +95,5 @@ ggplot(typical_pred, aes(x=timeUse)) + geom_line(aes(y=B_cp, color="B_cp", linet
   scale_y_continuous(breaks= seq(0,1.6,0.2), sec.axis = sec_axis(~.*60, name = "State of Charge (%)")) +
   labs(y="Power (kW)", x = "Time of day", colour="", linetype="") +
   scale_x_continuous(breaks=seq(0,24,by=2)) + THEME
-ggsave(here(plot_dir,"typical_pred_jul19_mar20.pdf"), width = 8, height = 8, units = "cm")
+ggsave(here(plot_dir,"typical_pred_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 #******************************************************************************************#
