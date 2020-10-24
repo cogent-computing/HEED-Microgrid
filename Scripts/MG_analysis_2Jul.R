@@ -145,6 +145,16 @@ na_seadec_pg <- na_seadec_pg %>%
          Diff_range=ifelse(Diff<0,1,ifelse(Diff>=0 & Diff<100, 2, 
          ifelse(Diff>=100 & Diff<200, 3, ifelse(Diff>=200 & Diff<300, 4, 5)))))
 
+# Prediction error - kWh/day - nurseries
+na_seadec_nur_daily <- na_seadec_nur[,c(1:3, 48,50)]
+na_seadec_nur_daily <- na_seadec_nur %>% group_by(month, date) %>% summarise(error=sum(Diff),
+                                                                             load=sum(Actual.User.Load.W))
+
+# Prediction error - kWh/day - playground
+na_seadec_pg_daily <- na_seadec_pg[,c(1:3, 21, 23)]
+na_seadec_pg_daily <- na_seadec_pg %>% group_by(month, date) %>% summarise(error=sum(Diff),
+                                                                             load=sum(Actual.User.Load.W))
+
 plotError_scatter <- function(df) {
   ggplot(df, aes(timeUse, Diff/1000.0, color=month, shape=month)) +
     geom_point() + scale_shape_manual(values=c(1,4,1,4,1,4,1,4,1)) + 
@@ -184,8 +194,13 @@ ggsave(here(plot_dir,"diffPred_nur_tod_jul19_mar20.pdf"), width = 8, height = 6,
 
 # prediction error at nursery as a function of month per reading
 ggplot(na_seadec_nur, aes(x=as.factor(month), y=Diff/1000)) + geom_boxplot() + THEME + 
-  labs(y="Prediction error (kWh)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.2)) 
+  labs(y="Prediction error (kW)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.2)) 
 ggsave(here(plot_dir,"diffPred_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily prediction error at nursery as a function of month per reading
+ggplot(na_seadec_nur_daily, aes(x=as.factor(month), y=error/1000)) + geom_boxplot() + THEME + 
+  labs(y="Prediction error (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,4,0.5), limits=c(0,4))
+ggsave(here(plot_dir,"dailyError_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # prediction error at playground as a function of time of day per reading
 ggplot(na_seadec_pg, aes(x=as.factor(timeUse), y=Diff/1000)) + geom_boxplot() + THEME + 
@@ -195,8 +210,13 @@ ggsave(here(plot_dir,"diffPred_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, 
 
 # prediction error at playground as a function of month per reading
 ggplot(na_seadec_pg, aes(x=as.factor(month), y=Diff/1000)) + geom_boxplot() + THEME + 
-  labs(y="Prediction error (kWh)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.1)) 
+  labs(y="Prediction error (kW)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.1)) 
 ggsave(here(plot_dir,"diffPred_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily prediction error at nursery as a function of month per reading
+ggplot(na_seadec_pg_daily, aes(x=as.factor(month), y=error/1000)) + geom_boxplot() + THEME + 
+  labs(y="Prediction error (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.5,0.5), limits=c(0,2.5))
+ggsave(here(plot_dir,"dailyError_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # actual user load at nursery as a function of time of day per reading
 ggplot(na_seadec_nur, aes(x=as.factor(timeUse), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
@@ -206,8 +226,13 @@ ggsave(here(plot_dir,"userLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 6,
 
 # actual user load at nursery as a function of month per reading
 ggplot(na_seadec_nur, aes(x=as.factor(month), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Actual User Load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
+  labs(y="Actual User Load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
 ggsave(here(plot_dir,"userLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily user load at nursery as a function of month per reading
+ggplot(na_seadec_nur_daily, aes(x=as.factor(month), y=load/1000)) + geom_boxplot() + THEME + 
+  labs(y="Actual User Load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.0,0.4), limits=c(0,2.0))
+ggsave(here(plot_dir,"dailyLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # actual user load at playground as a function of time of day per reading
 ggplot(na_seadec_pg, aes(x=as.factor(timeUse), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
@@ -217,17 +242,29 @@ ggsave(here(plot_dir,"userLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, 
 
 # actual user load at playground as a function of month per reading
 ggplot(na_seadec_pg, aes(x=as.factor(month), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Actual User Load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
+  labs(y="Actual User Load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
 ggsave(here(plot_dir,"userLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily user load at playground as a function of month per reading
+ggplot(na_seadec_pg_daily, aes(x=as.factor(month), y=load/1000)) + geom_boxplot() + THEME + 
+  labs(y="Actual User Load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.2), limits=c(0,1.0))
+ggsave(here(plot_dir,"dailyLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # Plotting separately for sockets and CPEs
 na_devs_nur <- na_seadec_nur
 na_devs_nur <- na_devs_nur %>% mutate(Light.load.W =rowSums(na_devs_nur[,c(4:39)]),
                               Socket.load.W = rowSums(na_devs_nur[,c(40:47)]))
-
 na_devs_pg <- na_seadec_pg
 na_devs_pg <- na_devs_pg %>% mutate(Light.load.W =rowSums(na_devs_pg[,c(4:18)]),
                                       Socket.load.W = rowSums(na_devs_pg[,c(19:20)]))
+
+# Calculating daily values
+na_devs_nur_daily <- na_devs_nur[,c(1:3,52:53)]
+na_devs_nur_daily <- na_devs_nur_daily %>% group_by(month, date) %>% summarise(Light.load.W=sum(Light.load.W),
+                                                                       Socket.load.W=sum(Socket.load.W))
+na_devs_pg_daily <- na_devs_pg[,c(1:3,25:26)]
+na_devs_pg_daily <- na_devs_pg_daily %>% group_by(month, date) %>% summarise(Light.load.W=sum(Light.load.W),
+                                                                               Socket.load.W=sum(Socket.load.W))
 
 # light load at nursery as a function of time of day per reading
 ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
@@ -237,8 +274,13 @@ ggsave(here(plot_dir,"lightLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 6
 
 # light load at nursery as a function of month per reading
 ggplot(na_devs_nur, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
 ggsave(here(plot_dir,"lightLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily light load at nursery as a function of month per reading
+ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailyLight_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # socket load at nursery as a function of time of day per reading
 ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
@@ -248,8 +290,13 @@ ggsave(here(plot_dir,"socketLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 
 
 # socket load at nursery as a function of month per reading
 ggplot(na_devs_nur, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
+  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
 ggsave(here(plot_dir,"socketLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily socket load at nursery as a function of month per reading
+ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.0,0.4))
+ggsave(here(plot_dir,"dailySocket_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # light load at playground as a function of time of day per reading
 ggplot(na_devs_pg, aes(x=as.factor(timeUse), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
@@ -259,8 +306,13 @@ ggsave(here(plot_dir,"lightLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6,
 
 # light load at playground as a function of month per reading
 ggplot(na_devs_pg, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
 ggsave(here(plot_dir,"lightLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily light load at playground as a function of month per reading
+ggplot(na_devs_pg_daily, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.6,0.1))
+ggsave(here(plot_dir,"dailyLight_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # socket load at playground as a function of time of day per reading
 ggplot(na_devs_pg, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
@@ -270,12 +322,19 @@ ggsave(here(plot_dir,"socketLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6
 
 # socket load at playground as a function of month per reading
 ggplot(na_devs_pg, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
+  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
 ggsave(here(plot_dir,"socketLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily socket load at playground as a function of month per reading
+ggplot(na_devs_pg_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.5,0.1))
+ggsave(here(plot_dir,"dailySocket_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # Plotting behaviour of CPE and sockets for weekdays and weekends
 na_devs_nur <- na_devs_nur %>% mutate(weekday = as.character(wday(date, label=TRUE, abbr=TRUE)))
 na_devs_pg <- na_devs_pg %>% mutate(weekday = as.character(wday(date, label=TRUE, abbr=TRUE)))
+na_devs_nur_daily <- na_devs_nur_daily %>% mutate(weekday = as.character(wday(date, label=TRUE, abbr=TRUE)))
+na_devs_pg_daily <- na_devs_pg_daily %>% mutate(weekday = as.character(wday(date, label=TRUE, abbr=TRUE)))
 
 # light load at nursery as a function of time of day per reading over weekdays and weekends
 ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
@@ -288,6 +347,24 @@ ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Sat","Sun"),], aes(x=as.factor(ti
   scale_x_discrete(breaks=seq(0,24,by=2)) + scale_y_continuous(breaks=seq(0,1.0,0.01))
 ggsave(here(plot_dir,"lightLoad_nur_wend_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
+# light load at nursery as a function of month per reading over weekdays and weekends
+ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+ggsave(here(plot_dir,"lightLoad_nur_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+ggsave(here(plot_dir,"lightLoad_nur_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily light load at nursery as a function of month per reading over weekdays and weekends
+ggplot(na_devs_nur_daily[na_devs_nur_daily$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailyLight_nur_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_nur_daily[na_devs_nur_daily$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailyLight_nur_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
 # socket load at nursery as a function of time of day per reading over weekdays and weekends
 ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
        aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
@@ -299,23 +376,23 @@ ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Sat","Sun"),], aes(x=as.factor(ti
   scale_y_continuous(breaks=seq(0,1.2,0.01))  + scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"socketLoad_nur_wend_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# light load at nursery as a function of month per reading over weekdays and weekends
-ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
-       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_nur_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
-  geom_boxplot() + THEME + labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_nur_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # socket load at nursery as a function of month per reading over weekdays and weekends
 ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
        aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
+  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
 ggsave(here(plot_dir,"socketLoad_nur_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 ggplot(na_devs_nur[na_devs_nur$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Socket.load.W/1000)) + 
-  geom_boxplot() + THEME + labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
+  geom_boxplot() + THEME + labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
 ggsave(here(plot_dir,"socketLoad_nur_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily socket load at nursery as a function of month per reading over weekdays and weekends
+ggplot(na_devs_nur_daily[na_devs_nur_daily$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.6,0.4))
+ggsave(here(plot_dir,"dailySocket_nur_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_nur_daily[na_devs_nur_daily$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Socket.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.5,0.1))
+ggsave(here(plot_dir,"dailySocket_nur_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # light load at playground as a function of time of day per reading over weekdays and weekends
 ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
@@ -328,6 +405,24 @@ ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Sat","Sun"),], aes(x=as.factor(time
   scale_x_discrete(breaks=seq(0,24,by=2)) + scale_y_continuous(breaks=seq(0,1.0,0.01))
 ggsave(here(plot_dir,"lightLoad_pg_wend_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
+# light load at playground as a function of month per reading over weekdays and weekends
+ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+ggsave(here(plot_dir,"lightLoad_pg_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
+ggsave(here(plot_dir,"lightLoad_pg_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily light load at playground as a function of month per reading over weekdays and weekends
+ggplot(na_devs_pg_daily[na_devs_pg_daily$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailyLight_pg_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_pg_daily[na_devs_pg_daily$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailyLight_pg_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
 # socket load at playground as a function of time of day per reading over weekdays and weekends
 ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
        aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
@@ -339,23 +434,23 @@ ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Sat","Sun"),], aes(x=as.factor(time
   scale_y_continuous(breaks=seq(0,1.2,0.01))  + scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"socketLoad_pg_wend_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# light load at playground as a function of month per reading over weekdays and weekends
-ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
-       aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_pg_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Light.load.W/1000)) + 
-  geom_boxplot() + THEME + labs(y="Light load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_pg_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # socket load at playground as a function of month per reading over weekdays and weekends
 ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
        aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
+  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
 ggsave(here(plot_dir,"socketLoad_pg_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 ggplot(na_devs_pg[na_devs_pg$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Socket.load.W/1000)) + 
-  geom_boxplot() + THEME + labs(y="Socket load (kWh)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.01))
+  geom_boxplot() + THEME + labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.01))
 ggsave(here(plot_dir,"socketLoad_pg_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily socket load at playground as a function of month per reading over weekdays and weekends
+ggplot(na_devs_pg_daily[na_devs_pg_daily$weekday %in% c("Mon","Tue","Wed","Thu","Fri"),], 
+       aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailySocket_pg_wday_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggplot(na_devs_pg_daily[na_devs_pg_daily$weekday %in% c("Sat","Sun"),], aes(x=as.factor(month), y=Socket.load.W/1000)) + 
+  geom_boxplot() + THEME + labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggsave(here(plot_dir,"dailySocket_pg_wend_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 #******************************************************************************************#
 
 #******************************************************************************************#
