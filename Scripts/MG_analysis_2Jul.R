@@ -197,6 +197,35 @@ ggsave(here(plot_dir,"overall_load_pg_jul19_mar20.pdf"), width = 8, height = 6, 
 #******************************************************************************************#
 
 #******************************************************************************************#
+# Plots 7a-b - Typical AC load at the micro-grid between 2nd July and 31st Mar
+na_seadec_sub <- imputed_data[,c(1:3, which(grepl("Actual", colnames(imputed_data), fixed=TRUE)))]
+
+# Calculate typical load (actual and predicted) at Nurseries and playground
+typical_load <- na_seadec_sub %>% group_by(month, timeUse) %>% 
+  summarise(AC.Load.W = mean(Actual.AC.consumption_ma))
+typical_load <- as.data.frame(typical_load)
+
+#"Typical day load profile at the MG between Jul'19 and Mar'20"
+ggplot(typical_load, aes(timeUse, AC.Load.W/1000.0, color=month)) + 
+  geom_line(aes(linetype=month)) + scale_x_continuous(breaks=seq(0,24,2)) + THEME + 
+  scale_y_continuous(breaks=seq(0,0.7,0.1)) + theme(legend.text=element_text(size=7, family="Times New Roman"))+
+  labs(x="Time of day", y="AC consumption (kW)",color="", linetype="")
+ggsave(here(plot_dir,"typical_ACload_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggsave(here(plot_dir,"typical_ACload_jul19_mar20.png"), width = 8, height = 6, units = "cm")
+
+#"Typical day load profile at the MG between Jul'19 and Mar'20"
+overall_load <- typical_load %>% group_by(timeUse) %>% summarise(AC.Load.W=mean(AC.Load.W))
+overall_load <- data.frame(month=rep("Actual",24), timeUse = c(0:23), 
+                           AC.Load.W=overall_load$AC.Load.W,
+                           stringsAsFactors = FALSE)
+ggplot(overall_load, aes(timeUse, AC.Load.W/1000.0, color=month)) + 
+  geom_line(aes(linetype=month)) + scale_x_continuous(breaks=seq(0,24,2)) + THEME + 
+  scale_y_continuous(breaks=seq(0,0.7,0.1)) + theme(legend.text=element_text(size=7, family="Times New Roman"))+
+  labs(x="Time of day", y="AC load (kW)",color="", linetype="")
+ggsave(here(plot_dir,"overall_ACload_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+#******************************************************************************************#
+
+#******************************************************************************************#
 # Plots 8b-c - User demand over and under predictions at the nurseries (b) and playground (c)
 # Calculate over or under prediction for each instance
 na_seadec_nur <- na_seadec_nur %>% 
@@ -520,11 +549,12 @@ system_daily_sub <- system_daily[, c(268,269,3)]
 colnames(system_daily_sub) <- c("days", "User load", "AC consumption")
 system_daily_sub <- gather(system_daily_sub, id, value, 2:3)
 # "Daily AC consumption at the Microgrid between Jul'19 and Mar'20"
-ggplot(system_daily_sub, aes(days, value/1000, color=id, shape=id)) + geom_point() + 
+ggplot(system_daily_sub[system_daily_sub$id=="AC consumption",], aes(days, value/1000, color=id, shape=id)) + geom_point() + 
   scale_shape_manual(values=c(1,4)) + labs(y="Energy consumption (kWh)", x = "Days since commissioning", 
-                                           colour="", shape="") + THEME + 
+                                           colour="", shape="") + THEME + theme(legend.position="none") + 
   scale_x_continuous(breaks = seq(1,260,28)) + scale_y_continuous(breaks=seq(0,6,1))
 ggsave(here(plot_dir,"daily_acLoad_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+ggsave(here(plot_dir,"daily_acLoad_jul19_mar20.png"), width = 8, height = 6, units = "cm")
 #******************************************************************************************#
 
 #******************************************************************************************#
