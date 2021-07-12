@@ -1,7 +1,7 @@
 #******************************************************************************************#
 # This is the script for analysing data for Microgrid                                      #
 # Author: K Bhargava                                                                       #
-# Last updated on: 15th Oct 2020                                                           #
+# Last updated on: 30th Nov 2020                                                           #
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -89,6 +89,41 @@ write.csv(system_monthly, file=here(filepath,"monthly_avg_correctedData.csv"), r
 #******************************************************************************************#
 
 #******************************************************************************************#
+# Plots for identifying categories of data - Nursery 2 sockets
+socket_yield <- imputed_data[, c(1:3, which(grepl("vRELAY", colnames(imputed_data), fixed=TRUE)))]
+socket_yield <- socket_yield[, c(1:3, which(grepl("Nur.2", colnames(socket_yield), fixed=TRUE)))]
+socket_yield <- socket_yield[, c(1:3, which(grepl("original", colnames(socket_yield), fixed=TRUE)))]
+colnames(socket_yield) <- c("date","timeUse","month","Nur 2A S1","Nur 2A S2",
+                            "Nur 2B S1", "Nur 2C S1")
+socket_yield <- gather(socket_yield, variable, value, 4:7)
+socket_yield <- socket_yield %>% mutate(type=ifelse(is.na(value), "Communication failure", "Available"))
+
+# Categorize the missing data - power outage, component failures and communication failures
+# Power failure between 4-18 Sep
+socket_yield <- socket_yield %>% mutate(type=ifelse(date>="2019-09-04" & date<="2019-09-18",
+                                                    "Power outage", type))
+
+# Component failures 12Feb-8Mar and 9Mar to 31Mar for Nur2AS2
+socket_yield <- socket_yield %>% mutate(type=ifelse(date>="2020-02-12" & date<="2020-03-08",
+                                                    "Component fault",type))
+socket_yield <- socket_yield %>% mutate(type=ifelse(variable=="Nur.2A.S2.vRELAY1_LVL_original" &
+                                                      date>="2020-03-09" & date<="2020-03-31" ,
+                                                    "Component fault", type))
+
+pal <- wes_palette("Zissou1", 100, type = "continuous")
+plotYield <- function(df) {
+  ggplot(df, aes(date, timeUse)) + geom_tile(aes(fill=type)) + 
+    scale_y_continuous(breaks=seq(0,24,by=6)) + 
+    labs(x = "Day of study", y="Time of day", fill="") + THEME +
+          guides(fill=guide_legend(nrow=2,byrow=TRUE)) + 
+    theme(legend.text=element_text(size=8, family="Times New Roman"),
+          legend.key.size = unit(0.1, "cm"))
+}
+plotYield(socket_yield) + facet_wrap(~variable, nrow=2)
+ggsave(here(plot_dir,"socket_categorical_jul19_mar20.pdf"), width = 8, height = 8, units = "cm")
+#******************************************************************************************#
+
+#******************************************************************************************#
 # Plots 7a-b - Typical user load and predicted load at the micro-grid’s nursery (a) 
 # and playground (b) between 2nd July and 31st Mar
 # Subset imputed data and calculate load for nurseries and playground
@@ -102,6 +137,9 @@ na_seadec_nur <- na_seadec_nur %>% mutate(Actual.User.Load.W=rowSums(na_seadec_n
 na_seadec_pg <- na_seadec_sub[,c(1:3,which(grepl("Playground", colnames(na_seadec_sub), fixed=TRUE)))]
 na_seadec_pg <- na_seadec_pg %>% mutate(Actual.User.Load.W=rowSums(na_seadec_pg[,c(4:20)]),
                                     Predicted.User.Load.W=rep(pg_predicted$User.Load.W,274))
+
+na_seadec_sl <- na_seadec_sub[,c(1:3,which(grepl("Streetlight", colnames(na_seadec_sub), fixed=TRUE)))]
+na_seadec_sl <- na_seadec_sl %>% mutate(Actual.User.Load.W=rowSums(na_seadec_sl[,c(4:12)]))
 
 # Calculate typical load (actual and predicted) at Nurseries and playground
 typical_load_nur <- na_seadec_nur %>% group_by(month, timeUse) %>% 
@@ -127,6 +165,35 @@ ggsave(here(plot_dir,"typical_load_nur_jul19_mar20.pdf"), width = 8, height = 6,
 # title="Typical day load profile at the Playground between Jul'19 and Mar'20"
 plotTypical(typical_load_pg) 
 ggsave(here(plot_dir,"typical_load_pg_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# title="Typical day load profile at the Nurseries between Jul'19 and Mar'20"
+plotTypical(typical_load_nur[typical_load_nur$month!="Predicted",]) + 
+  scale_y_continuous(breaks=seq(0,0.1,0.01))
+ggsave(here(plot_dir,"typical_load_nur_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+# title="Typical day load profile at the Playground between Jul'19 and Mar'20"
+plotTypical(typical_load_pg[typical_load_pg$month!="Predicted",]) + 
+  scale_y_continuous(breaks=seq(0,0.1,0.01))
+ggsave(here(plot_dir,"typical_load_pg_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+#"Typical day load profile at the nurseries between Jul'19 and Mar'20"
+overall_load_nur <- typical_load_nur %>% group_by(timeUse) %>% 
+  summarise(User.Load.W=mean(User.Load.W))
+overall_load_nur <- data.frame(month=rep("Actual",24), timeUse = c(0:23), 
+                           User.Load.W=overall_load_nur$User.Load.W,
+                           stringsAsFactors = FALSE)
+overall_load_nur <- rbind(overall_load_nur, nur_predicted)
+plotTypical(overall_load_nur) 
+ggsave(here(plot_dir,"overall_load_nur_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+#"Typical day load profile at the playground between Jul'19 and Mar'20"
+overall_load_pg <- typical_load_pg %>% group_by(timeUse) %>% 
+  summarise(User.Load.W=mean(User.Load.W))
+overall_load_pg <- data.frame(month=rep("Actual",24), timeUse = c(0:23), 
+                               User.Load.W=overall_load_pg$User.Load.W,
+                               stringsAsFactors = FALSE)
+overall_load_pg <- rbind(overall_load_pg, pg_predicted)
+plotTypical(overall_load_pg) 
+ggsave(here(plot_dir,"overall_load_pg_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -154,6 +221,10 @@ na_seadec_nur_daily <- na_seadec_nur %>% group_by(month, date) %>% summarise(err
 na_seadec_pg_daily <- na_seadec_pg[,c(1:3, 21, 23)]
 na_seadec_pg_daily <- na_seadec_pg %>% group_by(month, date) %>% summarise(error=sum(Diff),
                                                                              load=sum(Actual.User.Load.W))
+
+# Daily data - kWh/day - streetlight
+na_seadec_sl_daily <- na_seadec_sl[,c(1:3, 13)]
+na_seadec_sl_daily <- na_seadec_sl_daily %>% group_by(month, date) %>% summarise(load=sum(Actual.User.Load.W))
 
 plotError_scatter <- function(df) {
   ggplot(df, aes(timeUse, Diff/1000.0, color=month, shape=month)) +
@@ -187,15 +258,11 @@ plotError_tile(na_seadec_pg) + scale_fill_gradientn(colours = pal)
 ggsave(here(plot_dir,"diffPred_tile_pg_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # prediction error at nursery as a function of time of day per reading
-ggplot(na_seadec_nur, aes(x=as.factor(timeUse), y=Diff/1000)) + geom_boxplot() + THEME + 
+ggplot(na_seadec_nur, aes(x=as.factor(timeUse), y=Diff/1000)) + 
+  geom_boxplot(lwd=0.2,outlier.shape=1) + THEME + 
   labs(y="Prediction error (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(-1,0.8,0.2)) +
   scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"diffPred_nur_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
-# prediction error at nursery as a function of month per reading
-ggplot(na_seadec_nur, aes(x=as.factor(month), y=Diff/1000)) + geom_boxplot() + THEME + 
-  labs(y="Prediction error (kW)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.2)) 
-ggsave(here(plot_dir,"diffPred_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # daily prediction error at nursery as a function of month per reading
 ggplot(na_seadec_nur_daily, aes(x=as.factor(month), y=error/1000)) + geom_boxplot() + THEME + 
@@ -208,11 +275,6 @@ ggplot(na_seadec_pg, aes(x=as.factor(timeUse), y=Diff/1000)) + geom_boxplot() + 
   scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"diffPred_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# prediction error at playground as a function of month per reading
-ggplot(na_seadec_pg, aes(x=as.factor(month), y=Diff/1000)) + geom_boxplot() + THEME + 
-  labs(y="Prediction error (kW)", x = "Month") + scale_y_continuous(breaks=seq(-1,0.8,0.1)) 
-ggsave(here(plot_dir,"diffPred_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily prediction error at nursery as a function of month per reading
 ggplot(na_seadec_pg_daily, aes(x=as.factor(month), y=error/1000)) + geom_boxplot() + THEME + 
   labs(y="Prediction error (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.5,0.5), limits=c(0,2.5))
@@ -224,11 +286,6 @@ ggplot(na_seadec_nur, aes(x=as.factor(timeUse), y=Actual.User.Load.W/1000)) + ge
   scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"userLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# actual user load at nursery as a function of month per reading
-ggplot(na_seadec_nur, aes(x=as.factor(month), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Actual User Load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
-ggsave(here(plot_dir,"userLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily user load at nursery as a function of month per reading
 ggplot(na_seadec_nur_daily, aes(x=as.factor(month), y=load/1000)) + geom_boxplot() + THEME + 
   labs(y="Actual User Load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.0,0.4), limits=c(0,2.0))
@@ -239,11 +296,6 @@ ggplot(na_seadec_pg, aes(x=as.factor(timeUse), y=Actual.User.Load.W/1000)) + geo
   labs(y="Actual User Load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,1.2,0.02)) +
   scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"userLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
-# actual user load at playground as a function of month per reading
-ggplot(na_seadec_pg, aes(x=as.factor(month), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Actual User Load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
-ggsave(here(plot_dir,"userLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # daily user load at playground as a function of month per reading
 ggplot(na_seadec_pg_daily, aes(x=as.factor(month), y=load/1000)) + geom_boxplot() + THEME + 
@@ -267,35 +319,35 @@ na_devs_pg_daily <- na_devs_pg_daily %>% group_by(month, date) %>% summarise(Lig
                                                                                Socket.load.W=sum(Socket.load.W))
 
 # light load at nursery as a function of time of day per reading
-ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
+ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Light.load.W/1000)) + 
+  geom_boxplot(lwd=0.2,outlier.size = 0, outlier.shape=1) + THEME + 
   labs(y="Light load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,1.0,0.01))  +
-  scale_x_discrete(breaks=seq(0,24,by=2))
+  scale_x_discrete(breaks=seq(0,24,by=2)) +
+  stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"lightLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# light load at nursery as a function of month per reading
-ggplot(na_devs_nur, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily light load at nursery as a function of month per reading
-ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1))
+ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Light.load.W/1000)) + 
+  geom_boxplot(lwd=0.2,outlier.size = 0, outlier.shape=1) + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.1)) +
+  stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"dailyLight_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # socket load at nursery as a function of time of day per reading
-ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,1.2,0.1))  +
-  scale_x_discrete(breaks=seq(0,24,by=2))
+ggplot(na_devs_nur, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + 
+  geom_boxplot(lwd=0.2, outlier.size = 0, outlier.shape=1) + THEME + 
+  labs(y="Socket load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,0.2,0.01),
+                                                                     limits=c(0,0.04))  +
+  scale_x_discrete(breaks=seq(0,24,by=2)) +
+  stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"socketLoad_nur_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# socket load at nursery as a function of month per reading
-ggplot(na_devs_nur, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.1))
-ggsave(here(plot_dir,"socketLoad_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily socket load at nursery as a function of month per reading
-ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,2.0,0.4))
+ggplot(na_devs_nur_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + 
+  geom_boxplot(lwd=0.2, outlier.size = 0, outlier.shape=1) + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.4,0.1),
+                                                                    limits=c(0,0.4)) +
+  stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"dailySocket_nur_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # light load at playground as a function of time of day per reading
@@ -304,31 +356,36 @@ ggplot(na_devs_pg, aes(x=as.factor(timeUse), y=Light.load.W/1000)) + geom_boxplo
   scale_x_discrete(breaks=seq(0,24,by=2))
 ggsave(here(plot_dir,"lightLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# light load at playground as a function of month per reading
-ggplot(na_devs_pg, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Light load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.0,0.01))
-ggsave(here(plot_dir,"lightLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily light load at playground as a function of month per reading
 ggplot(na_devs_pg_daily, aes(x=as.factor(month), y=Light.load.W/1000)) + geom_boxplot() + THEME + 
   labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.6,0.1))
 ggsave(here(plot_dir,"dailyLight_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # socket load at playground as a function of time of day per reading
-ggplot(na_devs_pg, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,1.2,0.02))  +
-  scale_x_discrete(breaks=seq(0,24,by=2))
+ggplot(na_devs_pg, aes(x=as.factor(timeUse), y=Socket.load.W/1000)) + 
+  geom_boxplot(lwd=0.2, outlier.size = 0, outlier.shape=1) + THEME + 
+  labs(y="Socket load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,0.03,0.01),
+                                                                     limits=c(0,0.03))  +
+  scale_x_discrete(breaks=seq(0,24,by=2)) + stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"socketLoad_pg_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
-# socket load at playground as a function of month per reading
-ggplot(na_devs_pg, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kW)", x = "Month") + scale_y_continuous(breaks=seq(0,1.2,0.02))
-ggsave(here(plot_dir,"socketLoad_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
-
 # daily socket load at playground as a function of month per reading
-ggplot(na_devs_pg_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + geom_boxplot() + THEME + 
-  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.5,0.1))
+ggplot(na_devs_pg_daily, aes(x=as.factor(month), y=Socket.load.W/1000)) + 
+  geom_boxplot(lwd=0.2, outlier.size = 0, outlier.shape=1) + THEME + 
+  labs(y="Socket load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.5,0.1)) +
+  stat_boxplot(geom='errorbar', linetype=1, width=0.5)
 ggsave(here(plot_dir,"dailySocket_pg_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# actual light load at streetlight as a function of time of day per reading
+ggplot(na_seadec_sl, aes(x=as.factor(timeUse), y=Actual.User.Load.W/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kW)", x = "Time of day") + scale_y_continuous(breaks=seq(0,0.05,0.01)) +
+  scale_x_discrete(breaks=seq(0,24,by=2))
+ggsave(here(plot_dir,"lightLoad_sl_tod_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
+
+# daily light load at streetlight as a function of month per reading
+ggplot(na_seadec_sl_daily, aes(x=as.factor(month), y=load/1000)) + geom_boxplot() + THEME + 
+  labs(y="Light load (kWh/day)", x = "Month") + scale_y_continuous(breaks=seq(0,0.5,0.1))
+ggsave(here(plot_dir,"lightLoad_sl_month_jul19_mar20.pdf"), width = 8, height = 6, units = "cm")
 
 # Plotting behaviour of CPE and sockets for weekdays and weekends
 na_devs_nur <- na_devs_nur %>% mutate(weekday = as.character(wday(date, label=TRUE, abbr=TRUE)))

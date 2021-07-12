@@ -2,7 +2,7 @@
 # Script for preprocessing MG data from July 2019 to March 2020 to convert to hourly data, #
 # analyse yield of hourly data and explore imputation techniques                           #
 # Authors: K Bhargava                                                                      #
-# Last updated on: 17th July, 2020                                                         #
+# Last updated on: 30th Nov, 2020                                                          #
 #******************************************************************************************#
 
 #******************************************************************************************#
@@ -124,6 +124,12 @@ plotYield(cpe_qual[cpe_qual$id%in%unique(cpe_qual$id)[18:20] & cpe_qual$variable
   facet_wrap(~id, nrow=2) + labs(y="Time of day")
 ggsave(here(plot_dir,"yield_sl_cpe.pdf"), width = 8, height = 8, units = "cm")
 
+test <- cpe_qual[cpe_qual$variable=="LED1_P",]
+unique(test$id)
+range(test$yield2)
+mean(test$yield2)
+sd(test$yield2)
+
 # "Yield per hour for Nursery 1 sockets: 02 Jul'19 - 31 Mar'20"
 plotYield(sockets_qual[sockets_qual$id%in%unique(sockets_qual$id)[1:4] & 
                          sockets_qual$variable=="vRELAY1_LVL",]) + facet_wrap(~id, nrow=2) + labs(y="Time of day")
@@ -138,6 +144,12 @@ ggsave(here(plot_dir,"yield_nur2_sockets.pdf"), width = 8, height = 8, units = "
 plotYield(sockets_qual[sockets_qual$id%in%unique(sockets_qual$id)[9:10] & 
                          sockets_qual$variable=="vRELAY1_LVL",]) + facet_wrap(~id, nrow=2) + labs(y="Time of day")
 ggsave(here(plot_dir,"yield_pg_sockets.pdf"), width = 8, height = 8, units = "cm")
+
+test <- sockets_qual[sockets_qual$variable=="vRELAY1_LVL",]
+unique(test$id)
+range(test$yield2)
+mean(test$yield2)
+sd(test$yield2)
 
 # "Yield per hour for Microgrid system data: 02 Jul'19 - 31 Mar'20"
 plotYield(system_qual[system_qual$id=="Solar Charger PV power",]) + labs(y="Time of day")
